@@ -25,7 +25,7 @@ OUTPUT_DIR = "output"
 GPT_MODEL = "gpt-4o-mini"
 
 # Modelo Gemini
-GEMINI_MODEL = "gemini-pro-vision"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 # Prompt para o modelo
 CAPTION_PROMPT = """You will see 3 frames from the same video segment: start, middle, and end.
