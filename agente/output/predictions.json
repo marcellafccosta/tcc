@@ -1,0 +1,102 @@
+{
+  "videos": [
+    {
+      "video_id": "v_bXdq2zI1Ms0",
+      "url": "https://www.youtube.com/watch?v=bXdq2zI1Ms0",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0,
+            10.23
+          ],
+          "caption": "The video segment introduces a tutorial on \"Attack and Escape Combinations\" in martial arts, listing techniques such as Queixada, Esquiva de frente, Fake Meia lua de compasso, Resistência paralela, and Role, followed by an appearance of Mestre Barrão, presumably the instructor."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            10.6,
+            39.84
+          ],
+          "caption": "A capoeira instructor introduces himself and demonstrates a movement in a training studio, accompanied by two students standing in the background."
+        },
+        {
+          "segment_id": 2,
+          "timestamps": [
+            38.01,
+            73.1
+          ],
+          "caption": "A person wearing a white martial arts uniform demonstrates a series of capoeira movements, starting in a low stance, transitioning into a sweeping motion, and finishing with a balanced pose. Other individuals in similar attire observe in the background."
+        }
+      ]
+    },
+    {
+      "video_id": "v_FsS_NCZEfaI",
+      "url": "https://www.youtube.com/watch?v=FsS_NCZEfaI",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0,
+            91.48
+          ],
+          "caption": "A boat moves across a sunny, calm body of water, leaving a trail of waves behind. The scene transitions underwater, revealing a vibrant coral reef with marine life, including schools of yellow fish and submerged structures covered in coral. The segment highlights the beauty of the underwater ecosystem."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            73.4,
+            174.45
+          ],
+          "caption": "The video begins with a vibrant underwater coral reef teeming with marine life, including colorful fish swimming around. A diver is seen exploring the reef, followed by a brief moment of darkness. The scene transitions to an underwater sculpture garden covered in algae and marine growth, and concludes with a view of the sandy ocean floor."
+        },
+        {
+          "segment_id": 2,
+          "timestamps": [
+            168.07,
+            212.74
+          ],
+          "caption": "A diver explores an underwater area, revealing a sandy seabed scattered with small objects and debris. The camera then focuses on a submerged, algae-covered car resting on the ocean floor."
+        }
+      ]
+    },
+    {
+      "video_id": "v_HWV_ccmZVPA",
+      "url": "https://www.youtube.com/watch?v=HWV_ccmZVPA",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0,
+            7.04
+          ],
+          "caption": "A lively outdoor event unfolds as people interact with a colorful mascot playing a saxophone, while others enjoy the sunny atmosphere. The scene transitions to a performer skillfully juggling objects against a backdrop of modern city buildings."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            8.3,
+            24.15
+          ],
+          "caption": "A group of participants gathers at the starting line of a vibrant outdoor running event, raising their hands in excitement. The race begins, and a large crowd of runners moves through a city street lined with spectators and event structures. The segment concludes with a celebration featuring a group of people in matching blue shirts cheering and enjoying the festive atmosphere."
+        },
+        {
+          "segment_id": 2,
+          "timestamps": [
+            26.17,
+            26.92
+          ],
+          "caption": "A group of cheerleaders in red tops and white skirts perform a synchronized dance routine outdoors, energetically waving red and white pom-poms. They move in unison, raising their arms and spinning while smiling and engaging with the audience. The setting appears to be a grassy area with trees and people in the background."
+        },
+        {
+          "segment_id": 3,
+          "timestamps": [
+            35.73,
+            50.32
+          ],
+          "caption": "A group of people participates in an outdoor yoga session, followed by a live musical performance in front of a large audience during a sunny day. The segment concludes with an announcement for the SeaWheeze event, scheduled for August 23, 2014, with registration opening on January 23."
+        }
+      ]
+    }
+  ]
+}
