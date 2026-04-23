@@ -7,28 +7,29 @@ from dotenv import load_dotenv
 # Carrega variáveis de ambiente
 load_dotenv()
 
-# Provedor de IA: "openai" ou "gemini"
-PROVIDER = os.getenv("PROVIDER", "openai")
+# ─── Provider ────────────────────────────────────────────────────
+# Opções: "github_gpt4o" | "github_gemini" | "github_llama" | "github_deepseek"
+PROVIDER = "github_gpt4o"
 
-# API Key da OpenAI
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# ─── GitHub Models (único token para todos os modelos) ────────────
+GITHUB_TOKEN    = os.getenv("GITHUB_TOKEN", "")
+GITHUB_ENDPOINT = "https://models.github.ai/inference"
 
-# API Key do Gemini
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GITHUB_GPT4O    = "openai/gpt-4o"
+GITHUB_GEMINI   = "google/gemini-2.0-flash"
+GITHUB_LLAMA    = "meta-llama/Llama-3.2-11B-Vision-Instruct"
+GITHUB_DEEPSEEK = "deepseek/DeepSeek-V3-0324"
 
 # Pastas do projeto
 VIDEOS_DIR = "videos"
 FRAMES_DIR = "frames"
 OUTPUT_DIR = "output"
 
-# Modelo OpenAI
-GPT_MODEL = "gpt-4o-mini"
-
-# Modelo Gemini
-GEMINI_MODEL = "gemini-2.5-flash"
+# Número máximo de frames enviados ao modelo por requisição
+MAX_FRAMES_MODEL = 5
 
 # Prompt para o modelo
-CAPTION_PROMPT = """You will see 3 frames from the same video segment: start, middle, and end.
+CAPTION_PROMPT = """You will see a sequence of frames from the same video segment, from start to end.
 
 Generate a single caption in English that describes what is happening in this segment.
 

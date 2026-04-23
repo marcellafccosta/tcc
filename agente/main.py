@@ -29,14 +29,14 @@ if os.path.dirname(__file__):
     sys.path.insert(0, os.path.dirname(__file__))
 
 import yt_dlp
-from openai import OpenAI
-
-try:
-    from google import genai as google_genai
-    from google.genai import types as genai_types
-    GEMINI_AVAILABLE = True
-except ImportError:
-    GEMINI_AVAILABLE = False
+from azure.ai.inference import ChatCompletionsClient
+from azure.ai.inference.models import (
+    ImageContentItem,
+    ImageUrl,
+    TextContentItem,
+    UserMessage,
+)
+from azure.core.credentials import AzureKeyCredential
 
 import agente_config as config
 
@@ -46,23 +46,24 @@ class VideoCaptioningAgent:
 
     def __init__(self):
         self.provider = config.PROVIDER
-
-        if self.provider == "gemini":
-            if not GEMINI_AVAILABLE:
-                raise ImportError(
-                    "google-genai não instalado. Execute: pip install google-genai"
-                )
-            self.gemini_client = google_genai.Client(api_key=config.GEMINI_API_KEY)
-            self.client = None
-        else:
-            self.client = OpenAI(api_key=config.OPENAI_API_KEY)
-            self.gemini_client = None
-
+        self.client = ChatCompletionsClient(
+            endpoint=config.GITHUB_ENDPOINT,
+            credential=AzureKeyCredential(config.GITHUB_TOKEN),
+        )
         self._criar_diretorios()
 
     # ─────────────────────────────────────────────────────────────
     # Utilitários internos
     # ─────────────────────────────────────────────────────────────
+
+    def _model_name(self) -> str:
+        """Retorna o nome do modelo conforme o provider"""
+        return {
+            "github_gpt4o":    config.GITHUB_GPT4O,
+            "github_gemini":   config.GITHUB_GEMINI,
+            "github_llama":    config.GITHUB_LLAMA,
+            "github_deepseek": config.GITHUB_DEEPSEEK,
+        }.get(self.provider, config.GITHUB_GPT4O)
 
     def _criar_diretorios(self):
         """Cria as pastas necessárias"""
@@ -230,14 +231,8 @@ class VideoCaptioningAgent:
     # ─────────────────────────────────────────────────────────────
 
     def gerar_legenda(self, frames):
-        """Dispatcher: envia para OpenAI ou Gemini conforme config.PROVIDER"""
-        if self.provider == "gemini":
-            return self._gerar_legenda_gemini(frames)
-        return self._gerar_legenda_openai(frames)
-
-    def _gerar_legenda_openai(self, frames):
         """
-        Gera legenda usando GPT Vision com N frames do segmento.
+        Gera legenda usando GitHub Models com N frames do segmento.
 
         Args:
             frames: lista com caminhos de imagens
@@ -249,76 +244,34 @@ class VideoCaptioningAgent:
             if not frames:
                 return None
 
+            # Amostrar no máximo MAX_FRAMES_MODEL frames uniformemente
+            max_f = config.MAX_FRAMES_MODEL
+            if len(frames) > max_f:
+                indices = [int(i * (len(frames) - 1) / (max_f - 1)) for i in range(max_f)]
+                frames = [frames[i] for i in indices]
+
             n = len(frames)
             rotulos = self._rotulos_temporais(n)
 
-            content = [{"type": "text", "text": config.CAPTION_PROMPT}]
+            content = [TextContentItem(text=config.CAPTION_PROMPT)]
 
             for i, caminho in enumerate(frames):
-                content.append({
-                    "type": "text",
-                    "text": f"[Frame {i + 1}/{n} — {rotulos[i]}]"
-                })
-                content.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": self._imagem_para_base64(caminho),
-                        "detail": "low"
-                    }
-                })
+                content.append(TextContentItem(text=f"[Frame {i + 1}/{n} \u2014 {rotulos[i]}]"))
+                content.append(
+                    ImageContentItem(image_url=ImageUrl(url=self._imagem_para_base64(caminho)))
+                )
 
-            response = self.client.chat.completions.create(
-                model=config.GPT_MODEL,
-                messages=[{"role": "user", "content": content}],
+            response = self.client.complete(
+                messages=[UserMessage(content=content)],
+                model=self._model_name(),
                 max_tokens=300,
-                temperature=0.3
+                temperature=0.3,
             )
 
             return response.choices[0].message.content.strip()
 
         except Exception as e:
-            print(f"✗ Erro ao gerar legenda (OpenAI): {e}")
-            return None
-
-    def _gerar_legenda_gemini(self, frames):
-        """
-        Gera legenda usando Gemini Vision com N frames do segmento.
-
-        Args:
-            frames: lista com caminhos de imagens
-
-        Returns:
-            String com a legenda gerada, ou None em caso de erro
-        """
-        try:
-            if not frames:
-                return None
-
-            n = len(frames)
-            rotulos = self._rotulos_temporais(n)
-
-            partes = [config.CAPTION_PROMPT]
-            for i, caminho in enumerate(frames):
-                partes.append(f"\n[Frame {i + 1}/{n} — {rotulos[i]}]")
-                with open(caminho, "rb") as f:
-                    dados = f.read()
-                partes.append(
-                    genai_types.Part.from_bytes(data=dados, mime_type="image/jpeg")
-                )
-
-            response = self.gemini_client.models.generate_content(
-                model=config.GEMINI_MODEL,
-                contents=partes,
-                config=genai_types.GenerateContentConfig(
-                    max_output_tokens=300,
-                    temperature=0.3
-                )
-            )
-
-            return response.text.strip()
-
-        except Exception as e:
-            print(f"✗ Erro ao gerar legenda (Gemini): {e}")
+            print(f"\u2717 Erro ao gerar legenda ({self.provider}): {e}")
             return None
 
     # ─────────────────────────────────────────────────────────────
@@ -378,10 +331,7 @@ class VideoCaptioningAgent:
         if not video_path:
             return None
 
-        modelo_ativo = (
-            config.GEMINI_MODEL if self.provider == "gemini"
-            else config.GPT_MODEL
-        )
+        modelo_ativo = self._model_name()
         print(f"\n[2/4] Extraindo frames de {len(segmentos)} segmentos")
         print(f"[3/4] Gerando legendas com {modelo_ativo} ({self.provider})")
 
@@ -445,7 +395,7 @@ class VideoCaptioningAgent:
 
 def processar_dataset(
     videos_json="../outros/scripts/videos_com_urls.json",
-    gt_json="../outros/descricoes/descricoes GT/anet_entities_test_1.json",
+    gt_json="../outros/scripts/anet_entities_test_1.json",
     output_file="predictions.json",
     limite=None
 ):
@@ -546,7 +496,7 @@ def processar_dataset(
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("BACKEND DE VIDEO CAPTIONING - GPT Vision")
+    print("BACKEND DE VIDEO CAPTIONING - GitHub Models")
     print("=" * 60)
     print("\nEste é o BACKEND - motor de processamento de vídeos.")
     print("Responsabilidade: gerar legendas com IA generativa.")
