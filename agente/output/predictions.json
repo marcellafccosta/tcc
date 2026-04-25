@@ -1,6 +1,246 @@
 {
   "videos": [
     {
+      "video_id": "v_eS1r2Qi0qUM",
+      "url": "https://www.youtube.com/watch?v=eS1r2Qi0qUM",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0.92,
+            30.44
+          ],
+          "caption": "Two pairs of badminton players compete in a doubles match, with the team in red returning a shot to the team in yellow. The yellow team prepares to respond as the rally continues on the court. The scoreboard shows JUN/YUCH leading 16-12 in the second game against KOO/TAN."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            21.21,
+            60.87
+          ],
+          "caption": "Two pairs of badminton players compete in a doubles match, with the team in yellow returning a shot to the team in red. The red team attempts a low shot while the yellow team stays ready near the net. The segment ends with the yellow team focused and prepared for the next play."
+        }
+      ]
+    },
+    {
+      "video_id": "v_UXi0Cy16-0Y",
+      "url": "https://www.youtube.com/watch?v=UXi0Cy16-0Y",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0,
+            4.04
+          ],
+          "caption": "A person in a red shirt walks to the center of a gymnasium floor with a large USF logo, facing a panel of judges seated at tables. The individual stops and stands in the middle, appearing to prepare for a presentation or performance while judges observe. The setting suggests a formal evaluation or competition event."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            4.04,
+            41.93
+          ],
+          "caption": "A competitor performs a rope skipping routine on a gymnasium court during an International Rope Skipping Federation event, while judges observe and score the performance from tables at the side. The athlete demonstrates various jump rope skills in front of an audience and a panel of judges."
+        },
+        {
+          "segment_id": 2,
+          "timestamps": [
+            41.42,
+            76.28
+          ],
+          "caption": "A person in a red shirt and black shorts performs a jump rope routine on an indoor basketball court, demonstrating agility and coordination. The sequence shows the individual jumping and swinging the rope while maintaining balance in an empty arena."
+        },
+        {
+          "segment_id": 3,
+          "timestamps": [
+            76.78,
+            101.03
+          ],
+          "caption": "A competitor in a red shirt performs a jump rope routine on a gymnasium court during a tournament, executing moves in front of an audience and a panel of judges. The event takes place at a large indoor venue with visible tournament signage and organized seating for officials."
+        }
+      ]
+    },
+    {
+      "video_id": "v_VtIMPJjcdn4",
+      "url": "https://www.youtube.com/watch?v=VtIMPJjcdn4",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            5.35,
+            71.99
+          ],
+          "caption": "A person sits at a table with a pair of pink athletic shoes and a box of baking soda, picking up one shoe and gesturing as if explaining or demonstrating something. The segment appears to show the person preparing to use baking soda with the shoes, likely to illustrate a cleaning or deodorizing method."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            21.39,
+            29.62
+          ],
+          "caption": "A person demonstrates how to use baking soda to clean or deodorize a pink athletic shoe. They pick up the shoe, pour baking soda into it, and then set both items back on the table."
+        },
+        {
+          "segment_id": 2,
+          "timestamps": [
+            30.44,
+            63.35
+          ],
+          "caption": "A person demonstrates with a pair of pink athletic shoes and a box of baking soda on a table, showing the shoes and preparing to use the baking soda. The sequence suggests an explanation or demonstration related to cleaning or deodorizing the shoes using baking soda."
+        }
+      ]
+    },
+    {
+      "video_id": "v_rMZtiiLAqoY",
+      "url": "https://www.youtube.com/watch?v=rMZtiiLAqoY",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0,
+            27.17
+          ],
+          "caption": "A person stands next to a foosball table, shows a coin to the camera, and then inserts the coin into the table's slot."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            21.27,
+            105.15
+          ],
+          "caption": "A person uses tools to open and remove the lock mechanism from a foosball table. The individual inspects the inside of the lock and then steps away, leaving the lock and tools on the table."
+        },
+        {
+          "segment_id": 2,
+          "timestamps": [
+            105.15,
+            118.14
+          ],
+          "caption": "A person is seen working with a metal rail attached to a wooden surface, possibly using a tool to adjust or secure screws. The segment ends with the person standing indoors near a wall with a large photo or poster in the background."
+        }
+      ]
+    },
+    {
+      "video_id": "v_bvnXdr-Hre4",
+      "url": "https://www.youtube.com/watch?v=bvnXdr-Hre4",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0,
+            28.08
+          ],
+          "caption": "A diver performs a routine on a springboard in an indoor swimming pool, observed by judges seated at the poolside. The segment shows the diver preparing and executing different dive techniques, including a back layout and an inward tuck, as indicated by the on-screen text. The event takes place in a competitive setting with spectators and officials present."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            28.97,
+            64.18
+          ],
+          "caption": "A diver performs a series of dives from a springboard into an indoor pool, executing an inward tuck followed by a reverse layout as judges observe from the side. The sequence ends with the diver entering the water while the judges continue to watch attentively."
+        },
+        {
+          "segment_id": 2,
+          "timestamps": [
+            53.49,
+            86.91
+          ],
+          "caption": "A diver performs a jump off a springboard in an indoor swimming pool while several judges sit and observe the performance. The diver executes a flip in mid-air and enters the water headfirst. The event appears to be a formal diving competition."
+        }
+      ]
+    },
+    {
+      "video_id": "v_j4Ru2L4u0Qk",
+      "url": "https://www.youtube.com/watch?v=j4Ru2L4u0Qk",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0.91,
+            87.26
+          ],
+          "caption": null
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            0.91,
+            91.37
+          ],
+          "caption": "A player wearing a helmet and sports uniform prepares to strike a sliotar with a hurley on a hurling field. He takes his stance, swings at the ball, and then watches its trajectory towards the goalposts."
+        }
+      ]
+    },
+    {
+      "video_id": "v_7ZbH4vHTmVs",
+      "url": "https://www.youtube.com/watch?v=7ZbH4vHTmVs",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0,
+            20.06
+          ],
+          "caption": "A group of people, including children and adults, are raking leaves together in the yard of a suburban neighborhood. They gather leaves into piles near the sidewalk and driveway, working as a team to clean up the lawn."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            20.59,
+            28.51
+          ],
+          "caption": "Two people are gathering leaves into a pile near the driveway of a house, using a trash bin to help with the cleanup. One person kneels or sits in the pile while the other continues to move leaves, suggesting they are both working and playing in the leaves. The scene takes place in a residential yard with a basketball hoop and a car parked in the garage."
+        },
+        {
+          "segment_id": 2,
+          "timestamps": [
+            28.51,
+            98.19
+          ],
+          "caption": "A group of people work together to rake and gather fallen leaves in a yard surrounded by a white picket fence. They use rakes to collect the leaves into piles, cleaning up the lawn on an overcast autumn day."
+        },
+        {
+          "segment_id": 3,
+          "timestamps": [
+            99.77,
+            105.58
+          ],
+          "caption": "Several children are sitting in the open trunk area of a parked minivan, interacting with each other while others are seated further inside the vehicle. The scene takes place on a residential street next to a yard covered with fallen leaves."
+        }
+      ]
+    },
+    {
+      "video_id": "v_rmoa-Ffel2k",
+      "url": "https://www.youtube.com/watch?v=rmoa-Ffel2k",
+      "segments": [
+        {
+          "segment_id": 0,
+          "timestamps": [
+            0,
+            23.17
+          ],
+          "caption": "A person in a gym approaches an elliptical machine, adjusts the settings or checks the controls, and then begins to use the equipment for exercise."
+        },
+        {
+          "segment_id": 1,
+          "timestamps": [
+            21.75,
+            76.11
+          ],
+          "caption": "A man in athletic clothing uses an elliptical machine in a gym, continuously exercising while holding the handles. The gym is equipped with multiple cardio machines visible in the background."
+        },
+        {
+          "segment_id": 2,
+          "timestamps": [
+            76.11,
+            94.55
+          ],
+          "caption": "A man uses an elliptical machine in a gym, exercising while holding the handles. After finishing his workout, he steps off the machine and walks away."
+        }
+      ]
+    },
+    {
       "video_id": "v_bXdq2zI1Ms0",
       "url": "https://www.youtube.com/watch?v=bXdq2zI1Ms0",
       "segments": [
@@ -10,7 +250,7 @@
             0,
             10.23
           ],
-          "caption": "The video segment introduces a tutorial on \"Attack and Escape Combinations\" in martial arts, listing techniques such as Queixada, Esquiva de frente, Fake Meia lua de compasso, Resistência paralela, and Role, followed by an appearance of Mestre Barrão, presumably the instructor."
+          "caption": "The video segment introduces a tutorial on attack and escape combinations in capoeira, listing techniques such as Queixada, Esquiva de frente, Fake Meia lua de compasso, Resistencia paralela, and Role. It concludes with Mestre Barrão appearing on screen, likely as the instructor for the lesson."
         },
         {
           "segment_id": 1,
@@ -18,7 +258,7 @@
             10.6,
             39.84
           ],
-          "caption": "A capoeira instructor introduces himself and demonstrates a movement in a training studio, accompanied by two students standing in the background."
+          "caption": "A capoeira instructor introduces himself and then demonstrates a movement in front of two students in a martial arts studio. The instructor performs a dynamic capoeira technique while the students observe attentively in the background."
         },
         {
           "segment_id": 2,
@@ -26,75 +266,37 @@
             38.01,
             73.1
           ],
-          "caption": "A person wearing a white martial arts uniform demonstrates a series of capoeira movements, starting in a low stance, transitioning into a sweeping motion, and finishing with a balanced pose. Other individuals in similar attire observe in the background."
+          "caption": "A person dressed in traditional capoeira attire demonstrates a low defensive movement, transitions into a sweeping motion, and then rises back to a standing position while others observe in a martial arts studio."
         }
       ]
     },
     {
-      "video_id": "v_FsS_NCZEfaI",
-      "url": "https://www.youtube.com/watch?v=FsS_NCZEfaI",
+      "video_id": "v_-UwqKYkkKlU",
+      "url": "https://www.youtube.com/watch?v=-UwqKYkkKlU",
       "segments": [
         {
           "segment_id": 0,
           "timestamps": [
             0,
-            91.48
+            9.28
           ],
-          "caption": "A boat moves across a sunny, calm body of water, leaving a trail of waves behind. The scene transitions underwater, revealing a vibrant coral reef with marine life, including schools of yellow fish and submerged structures covered in coral. The segment highlights the beauty of the underwater ecosystem."
+          "caption": "A woman stands in a gym setting, introducing a workout and explaining that one set of medium dumbbells is needed for the session. Various gym equipment and weights are visible in the background."
         },
         {
           "segment_id": 1,
           "timestamps": [
-            73.4,
-            174.45
+            10.56,
+            30.08
           ],
-          "caption": "The video begins with a vibrant underwater coral reef teeming with marine life, including colorful fish swimming around. A diver is seen exploring the reef, followed by a brief moment of darkness. The scene transitions to an underwater sculpture garden covered in algae and marine growth, and concludes with a view of the sandy ocean floor."
+          "caption": "A group of people participate in a fitness class, starting with cycling on stationary bikes and then transitioning to performing lunges with dumbbells. The instructor leads the exercises at the front of the room while others follow along. The setting is an indoor gym with mirrors and exercise equipment visible."
         },
         {
           "segment_id": 2,
           "timestamps": [
-            168.07,
-            212.74
+            32,
+            64
           ],
-          "caption": "A diver explores an underwater area, revealing a sandy seabed scattered with small objects and debris. The camera then focuses on a submerged, algae-covered car resting on the ocean floor."
-        }
-      ]
-    },
-    {
-      "video_id": "v_HWV_ccmZVPA",
-      "url": "https://www.youtube.com/watch?v=HWV_ccmZVPA",
-      "segments": [
-        {
-          "segment_id": 0,
-          "timestamps": [
-            0,
-            7.04
-          ],
-          "caption": "A lively outdoor event unfolds as people interact with a colorful mascot playing a saxophone, while others enjoy the sunny atmosphere. The scene transitions to a performer skillfully juggling objects against a backdrop of modern city buildings."
-        },
-        {
-          "segment_id": 1,
-          "timestamps": [
-            8.3,
-            24.15
-          ],
-          "caption": "A group of participants gathers at the starting line of a vibrant outdoor running event, raising their hands in excitement. The race begins, and a large crowd of runners moves through a city street lined with spectators and event structures. The segment concludes with a celebration featuring a group of people in matching blue shirts cheering and enjoying the festive atmosphere."
-        },
-        {
-          "segment_id": 2,
-          "timestamps": [
-            26.17,
-            26.92
-          ],
-          "caption": "A group of cheerleaders in red tops and white skirts perform a synchronized dance routine outdoors, energetically waving red and white pom-poms. They move in unison, raising their arms and spinning while smiling and engaging with the audience. The setting appears to be a grassy area with trees and people in the background."
-        },
-        {
-          "segment_id": 3,
-          "timestamps": [
-            35.73,
-            50.32
-          ],
-          "caption": "A group of people participates in an outdoor yoga session, followed by a live musical performance in front of a large audience during a sunny day. The segment concludes with an announcement for the SeaWheeze event, scheduled for August 23, 2014, with registration opening on January 23."
+          "caption": "A woman performs a workout in a gym, starting with lunges while lifting dumbbells overhead, then transitions to cycling on a stationary bike. The segment ends with a display of the Studio Sweat on Demand website."
         }
       ]
     }
