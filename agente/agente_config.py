@@ -8,25 +8,25 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ─── Provider ────────────────────────────────────────────────────
-# Opções: "github_gpt4o" | "github_gemini" | "github_llama" | "github_deepseek"
-PROVIDER = "github_gpt4o"
+# Opções: "github_gpt4o" | "github_llama" | "github_phi"
+PROVIDER           = "github_llama"  # usado pelo main.py (geração)
+EVALUATOR_PROVIDER = "github_gpt4o"  # usado pelo avaliar_legendas.py (avaliação)
+
 
 # ─── GitHub Models (único token para todos os modelos) ────────────
 GITHUB_TOKEN    = os.getenv("GITHUB_TOKEN", "")
+GITHUB_TOKEN_2  = os.getenv("GITHUB_TOKEN_2", "")  # token alternativo (dobra a cota)
+GITHUB_TOKEN_3  = os.getenv("GITHUB_TOKEN_3", "")  # terceiro token (150 req/dia total)
 GITHUB_ENDPOINT = "https://models.github.ai/inference"
 
-GITHUB_GPT4O    = "openai/gpt-4o"
-GITHUB_GEMINI   = "google/gemini-2.0-flash"
-GITHUB_LLAMA    = "meta-llama/Llama-3.2-11B-Vision-Instruct"
-GITHUB_DEEPSEEK = "deepseek/DeepSeek-V3-0324"
+GITHUB_GPT4O    = "openai/gpt-4.1"
+GITHUB_LLAMA    = "meta/Llama-4-Maverick-17B-128E-Instruct-FP8"
+GITHUB_PHI      = "microsoft/Phi-4-multimodal-instruct"
 
 # Pastas do projeto
 VIDEOS_DIR = "videos"
 FRAMES_DIR = "frames"
 OUTPUT_DIR = "output"
-
-# Número máximo de frames enviados ao modelo por requisição
-MAX_FRAMES_MODEL = 5
 
 # Prompt para o modelo
 CAPTION_PROMPT = """You will see a sequence of frames from the same video segment, from start to end.

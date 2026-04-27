@@ -22,6 +22,7 @@ import json
 import base64
 import subprocess
 import shutil
+import time
 from datetime import datetime
 import sys
 
@@ -37,6 +38,7 @@ from azure.ai.inference.models import (
     UserMessage,
 )
 from azure.core.credentials import AzureKeyCredential
+from azure.core.exceptions import HttpResponseError
 
 import agente_config as config
 
@@ -44,12 +46,28 @@ import agente_config as config
 class VideoCaptioningAgent:
     """Backend para geração de legendas de vídeos"""
 
+    # Controle de rate limit do GitHub Models
+    _github_daily_limit = 50
+
     def __init__(self):
         self.provider = config.PROVIDER
-        self.client = ChatCompletionsClient(
-            endpoint=config.GITHUB_ENDPOINT,
-            credential=AzureKeyCredential(config.GITHUB_TOKEN),
-        )
+
+        # Clientes GitHub Models — alterna entre tokens quando um esgota
+        self._github_clients = []
+        self._github_calls = []
+        for token in [config.GITHUB_TOKEN, getattr(config, "GITHUB_TOKEN_2", ""), getattr(config, "GITHUB_TOKEN_3", "")]:
+            if token:
+                self._github_clients.append(ChatCompletionsClient(
+                    endpoint=config.GITHUB_ENDPOINT,
+                    credential=AzureKeyCredential(token),
+                    retry_total=0,
+                ))
+                self._github_calls.append(0)
+        self._token_idx = 0  # índice do token ativo
+
+        # mantém compatibilidade com código existente
+        self.github_client = self._github_clients[0] if self._github_clients else None
+
         self._criar_diretorios()
 
     # ─────────────────────────────────────────────────────────────
@@ -60,7 +78,6 @@ class VideoCaptioningAgent:
         """Retorna o nome do modelo conforme o provider"""
         return {
             "github_gpt4o":    config.GITHUB_GPT4O,
-            "github_gemini":   config.GITHUB_GEMINI,
             "github_llama":    config.GITHUB_LLAMA,
             "github_deepseek": config.GITHUB_DEEPSEEK,
         }.get(self.provider, config.GITHUB_GPT4O)
@@ -95,6 +112,23 @@ class VideoCaptioningAgent:
             rotulos.append(f"{pct}%")
         rotulos.append("fim")
         return rotulos
+
+    def _github_disponivel(self) -> bool:
+        """
+        Verifica se há algum token GitHub disponível.
+        Alterna para o próximo token quando o atual esgota a cota diária.
+        """
+        for _ in range(len(self._github_clients)):
+            idx = self._token_idx
+            if self._github_calls[idx] < self._github_daily_limit:
+                self.github_client = self._github_clients[idx]
+                return True
+            # Token esgotado — tenta o próximo
+            print(f"  ⚠️  Token {idx + 1} esgotado ({self._github_daily_limit} req/dia) — alternando")
+            self._token_idx = (self._token_idx + 1) % len(self._github_clients)
+
+        print(f"  ⚠️  Todos os tokens GitHub esgotaram a cota diária")
+        return False
 
     # ─────────────────────────────────────────────────────────────
     # Módulo 1: Ingestão
@@ -133,9 +167,9 @@ class VideoCaptioningAgent:
                 "extractor_args": {
                     "youtube": {
                         "player_client": ["android", "web"],
-                        "player_skip": ["webpage", "config"]
+                        "player_skip": ["webpage", "config"],
                     }
-                }
+                },
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -157,12 +191,6 @@ class VideoCaptioningAgent:
         """
         1 frame a cada 10 segundos.
         Mínimo: 3  |  Máximo: 8
-
-        Exemplos:
-            5s  → 3 frames
-            30s → 3 frames
-            45s → 4 frames
-            90s → 8 frames (cap)
         """
         duracao = t_end - t_start
         n = max(3, int(duracao / 10))
@@ -172,23 +200,12 @@ class VideoCaptioningAgent:
         """
         Extrai N frames espaçados uniformemente no segmento.
         N é proporcional à duração (1 frame/10s, mín 3, máx 8).
-
-        Args:
-            video_path: Caminho do vídeo
-            t_start: Tempo de início em segundos
-            t_end: Tempo de fim em segundos
-            segment_id: ID do segmento
-
-        Returns:
-            Lista com os caminhos dos frames, ou None em caso de erro
         """
         try:
             segment_dir = os.path.join(config.FRAMES_DIR, f"seg_{segment_id}")
             os.makedirs(segment_dir, exist_ok=True)
 
             n_frames = self.calcular_n_frames(t_start, t_end)
-
-            # Recuar levemente o t_end para evitar extrair frame além da duração
             t_end_safe = t_end - 0.5
 
             if n_frames == 1:
@@ -200,26 +217,28 @@ class VideoCaptioningAgent:
             caminhos = []
             for i, tempo in enumerate(tempos):
                 saida = os.path.join(segment_dir, f"frame_{i:02d}.jpg")
-
                 cmd = [
-                    "ffmpeg", "-y",
-                    "-ss", str(tempo),
-                    "-i", video_path,
-                    "-frames:v", "1",
-                    "-q:v", "2",
+                    "ffmpeg",
+                    "-y",
+                    "-ss",
+                    str(tempo),
+                    "-i",
+                    video_path,
+                    "-frames:v",
+                    "1",
+                    "-q:v",
+                    "2",
                     saida,
                 ]
-
                 subprocess.run(
                     cmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    check=True
+                    check=True,
                 )
                 caminhos.append(saida)
 
-            print(f"    → {n_frames} frames extraídos "
-                  f"({t_end - t_start:.0f}s de duração)")
+            print(f"    → {n_frames} frames extraídos " f"({t_end - t_start:.0f}s de duração)")
             return caminhos
 
         except Exception as e:
@@ -230,48 +249,78 @@ class VideoCaptioningAgent:
     # Módulo 3: Captioning
     # ─────────────────────────────────────────────────────────────
 
-    def gerar_legenda(self, frames):
+    def gerar_legenda(self, frames) -> str | None:
+        """Gera legenda usando GitHub Models, tentando todos os tokens disponíveis."""
+        for _ in range(len(self._github_clients)):
+            if not self._github_disponivel():
+                break
+            resultado = self._gerar_legenda_github(frames)
+            if resultado:
+                return resultado
+            # _gerar_legenda_github já alternância o token em caso de rate limit
+        print("✗ Todos os tokens GitHub esgotaram ou falharam")
+        return None
+
+    def _gerar_legenda_github(self, frames) -> str | None:
         """
-        Gera legenda usando GitHub Models com N frames do segmento.
-
-        Args:
-            frames: lista com caminhos de imagens
-
-        Returns:
-            String com a legenda gerada, ou None em caso de erro
+        Gera legenda usando GitHub Models (Azure SDK).
+        Trata rate limit por minuto e por dia.
         """
         try:
             if not frames:
                 return None
 
-            # Amostrar no máximo MAX_FRAMES_MODEL frames uniformemente
-            max_f = config.MAX_FRAMES_MODEL
-            if len(frames) > max_f:
-                indices = [int(i * (len(frames) - 1) / (max_f - 1)) for i in range(max_f)]
-                frames = [frames[i] for i in indices]
-
             n = len(frames)
             rotulos = self._rotulos_temporais(n)
 
             content = [TextContentItem(text=config.CAPTION_PROMPT)]
-
             for i, caminho in enumerate(frames):
-                content.append(TextContentItem(text=f"[Frame {i + 1}/{n} \u2014 {rotulos[i]}]"))
+                content.append(TextContentItem(text=f"[Frame {i + 1}/{n} — {rotulos[i]}]"))
                 content.append(
-                    ImageContentItem(image_url=ImageUrl(url=self._imagem_para_base64(caminho)))
+                    ImageContentItem(
+                        image_url=ImageUrl(url=self._imagem_para_base64(caminho))
+                    )
                 )
 
-            response = self.client.complete(
+            response = self.github_client.complete(
                 messages=[UserMessage(content=content)],
                 model=self._model_name(),
                 max_tokens=300,
                 temperature=0.3,
             )
 
+            # Contabiliza chamada bem-sucedida no token atual
+            self._github_calls[self._token_idx] += 1
+            chamadas = self._github_calls[self._token_idx]
+            print(f"    [Token {self._token_idx + 1}: {chamadas}/{self._github_daily_limit} req]")
+
             return response.choices[0].message.content.strip()
 
+        except HttpResponseError as e:
+            status = e.status_code if hasattr(e, "status_code") else 0
+            mensagem = str(e).lower()
+
+            # Rate limit por minuto (429) — esgota o token atual para forçar alternĉia
+            if status == 429 or "too many requests" in mensagem:
+                print(f"  ⚠️  Rate limit — marcando token {self._token_idx + 1} como esgotado")
+                self._github_calls[self._token_idx] = self._github_daily_limit
+                self._token_idx = (self._token_idx + 1) % len(self._github_clients)
+                return None
+
+            print(f"✗ Erro HTTP GitHub ({status}): {e}")
+            return None
+
         except Exception as e:
-            print(f"\u2717 Erro ao gerar legenda ({self.provider}): {e}")
+            mensagem = str(e).lower()
+
+            # Resposta HTML em vez de JSON (rate limit retorna página HTML)
+            if "expecting value" in mensagem or "json is invalid" in mensagem:
+                print(f"  ⚠️  Rate limit (HTML) — marcando token {self._token_idx + 1} como esgotado")
+                self._github_calls[self._token_idx] = self._github_daily_limit
+                self._token_idx = (self._token_idx + 1) % len(self._github_clients)
+                return None
+
+            print(f"✗ Erro GitHub inesperado: {e}")
             return None
 
     # ─────────────────────────────────────────────────────────────
@@ -279,14 +328,7 @@ class VideoCaptioningAgent:
     # ─────────────────────────────────────────────────────────────
 
     def processar_segmento(self, video_path, t_start, t_end, segment_id):
-        """
-        Processa um segmento do vídeo:
-        1. Extrai os frames
-        2. Gera a legenda
-
-        Returns:
-            Dicionário com os resultados do segmento
-        """
+        """Processa um segmento: extrai frames e gera legenda."""
         print(f"  Segmento {segment_id}: [{t_start:.1f}s - {t_end:.1f}s]")
 
         frames = self.extrair_frames(video_path, t_start, t_end, segment_id)
@@ -296,7 +338,7 @@ class VideoCaptioningAgent:
                 "timestamps": [t_start, t_end],
                 "caption": None,
                 "frames": None,
-                "error": "Falha ao extrair frames"
+                "error": "Falha ao extrair frames",
             }
 
         legenda = self.gerar_legenda(frames)
@@ -310,33 +352,24 @@ class VideoCaptioningAgent:
             "segment_id": segment_id,
             "timestamps": [t_start, t_end],
             "caption": legenda,
-            "frames": frames
+            "frames": frames,
         }
 
     def processar_video(self, url, segmentos, video_id=None):
-        """
-        Processa um vídeo completo com múltiplos segmentos.
-
-        Args:
-            url: URL do YouTube
-            segmentos: lista de tuplas (t_start, t_end)
-            video_id: ID opcional do vídeo
-
-        Returns:
-            Dicionário com os resultados do processamento
-        """
+        """Processa um vídeo completo com múltiplos segmentos."""
         print("\n[1/4] Baixando vídeo...")
         video_path = self.baixar_video(url, video_id)
 
         if not video_path:
             return None
 
-        modelo_ativo = self._model_name()
         print(f"\n[2/4] Extraindo frames de {len(segmentos)} segmentos")
-        print(f"[3/4] Gerando legendas com {modelo_ativo} ({self.provider})")
+        print(f"[3/4] Gerando legendas — provider: {self.provider}")
 
         resultados = []
         for i, (t_start, t_end) in enumerate(segmentos):
+            if i > 0:
+                time.sleep(6.5)  # respeita 10 req/min do GitHub
             resultado = self.processar_segmento(video_path, t_start, t_end, i)
             resultados.append(resultado)
 
@@ -348,25 +381,14 @@ class VideoCaptioningAgent:
             "url": url,
             "num_segments": len(segmentos),
             "results": resultados,
-            "processed_at": datetime.now().isoformat()
+            "processed_at": datetime.now().isoformat(),
         }
 
     def salvar_resultados(self, dados, nome_arquivo=None):
-        """
-        Salva os resultados em JSON.
-
-        Args:
-            dados: dados a salvar
-            nome_arquivo: nome do arquivo JSON
-
-        Returns:
-            Caminho do arquivo salvo
-        """
+        """Salva os resultados em JSON."""
         try:
             if nome_arquivo is None:
-                nome_arquivo = (
-                    f"captions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-                )
+                nome_arquivo = f"captions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
             output_path = os.path.join(config.OUTPUT_DIR, nome_arquivo)
 
@@ -390,39 +412,35 @@ class VideoCaptioningAgent:
 
 
 # ─────────────────────────────────────────────────────────────────
-# Exemplos de uso
+# Processamento do dataset
 # ─────────────────────────────────────────────────────────────────
 
+
 def processar_dataset(
+    disponiveis_json="../outros/scripts/videos_disponiveis.json",
     videos_json="../outros/scripts/videos_com_urls.json",
-    gt_json="../outros/scripts/anet_entities_test_1.json",
+    gt_json="../outros/descricoes/descricoes GT/anet_entities_test_1.json",
     output_file="predictions.json",
-    limite=None
+    limite=None,
 ):
     """
     Processa o dataset real usando os timestamps do ground truth.
 
-    - Retoma automaticamente de onde parou (pula vídeos já processados).
-    - Salva no formato esperado por avaliar_legendas.py:
-        { "videos": [ { "video_id": ..., "segments": [{"caption": ...}] } ] }
-
-    Args:
-        videos_json: caminho para videos_com_urls.json
-        gt_json: caminho para o ground truth com timestamps
-        output_file: nome do arquivo de saída em output/
-        limite: número máximo de vídeos a processar (None = todos)
+    - Processa apenas os vídeos listados em videos_disponiveis.json.
+    - Retoma automaticamente de onde parou.
+    - Salva no formato esperado por avaliar_legendas.py.
     """
-    # Carregar dados
+    with open(disponiveis_json, "r") as f:
+        ids_disponiveis = json.load(f)
+
     with open(videos_json, "r") as f:
         videos_lista = json.load(f)
 
     with open(gt_json, "r") as f:
         gt_data = json.load(f)
 
-    # Montar mapa video_id → url
     url_map = {v["video_id"]: v["url"] for v in videos_lista}
 
-    # Carregar progresso anterior (se existir)
     output_path = os.path.join(config.OUTPUT_DIR, output_file)
     os.makedirs(config.OUTPUT_DIR, exist_ok=True)
 
@@ -437,10 +455,10 @@ def processar_dataset(
 
     agente = VideoCaptioningAgent()
 
-    # Filtrar vídeos que têm URL e timestamps no GT
     pendentes = [
-        vid for vid in url_map
-        if vid in gt_data and vid not in ja_processados
+        vid
+        for vid in ids_disponiveis
+        if vid in url_map and vid in gt_data and vid not in ja_processados
     ]
 
     if limite:
@@ -464,7 +482,6 @@ def processar_dataset(
             print(f"✗ Falha ao processar {video_id}, pulando.")
             continue
 
-        # Converter para o formato de avaliação
         entrada = {
             "video_id": video_id,
             "url": url,
@@ -472,15 +489,14 @@ def processar_dataset(
                 {
                     "segment_id": r["segment_id"],
                     "timestamps": r["timestamps"],
-                    "caption": r["caption"]
+                    "caption": r["caption"],
                 }
                 for r in resultado["results"]
-            ]
+            ],
         }
 
         saida["videos"].append(entrada)
 
-        # Salvar após cada vídeo (permite retomar)
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(saida, f, ensure_ascii=False, indent=2)
 
@@ -505,4 +521,4 @@ if __name__ == "__main__":
     print("  python avaliar_legendas.py")
     print("=" * 60)
 
-    processar_dataset(limite=3)
+    processar_dataset(limite=10)
