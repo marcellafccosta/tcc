@@ -42,7 +42,7 @@ for video_key in video_ids:  # percorre até encontrar 10 disponíveis
                  disponiveis.append(video_key)
              else:
                  indisponiveis.append(video_key)
- except:
+ except Exception:
      indisponiveis.append(video_key)
 
 print(f"Disponíveis: {len(disponiveis)}")
