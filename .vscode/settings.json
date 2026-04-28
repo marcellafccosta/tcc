@@ -2,6 +2,7 @@
     "python.defaultInterpreterPath": "${workspaceFolder}/agente/venv/bin/python",
     "python.terminal.activateEnvironment": true,
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/agente"
+        "${workspaceFolder}/agente",
+        "./src/agent"
     ]
 }
