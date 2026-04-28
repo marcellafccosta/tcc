@@ -5,3 +5,7 @@ azure-ai-inference>=1.0.0
 azure-core>=1.30.0
 numpy>=1.24.0
 nltk>=3.8.0
+
+# CIDEr-D requer pycocoevalcap (clonado manualmente):
+# git clone https://github.com/tylin/coco-caption src/evaluation/coco-caption
+# Sem ele, CIDEr-D não é calculado (apenas BLEU, METEOR, ROUGE-L via nltk)
