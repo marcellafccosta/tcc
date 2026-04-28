@@ -744,7 +744,19 @@ def main(args=None):
           print(f"   💾 Checkpoint salvo ({len(todos_resultados)}/{len(dados)} vídeos)")
 
       print("\n8. Gerando relatório...")
-      gerar_relatorio(todos_resultados, nome_saida, modelos)
+      relatorio = gerar_relatorio(todos_resultados, nome_saida, modelos)
+
+      # Salva arquivos por modelo (espelha estrutura das métricas automáticas)
+      for modelo, metricas in relatorio.get("metricas_por_modelo", {}).items():
+          nome_modelo = str(modelo).replace("/", "_")
+          arq_modelo = os.path.join(OUTPUT_DIR, f"accr_{nome_modelo}_{sufixo}.json")
+          tmp_m = Path(arq_modelo).with_suffix(".json.tmp")
+          tmp_m.write_text(
+              json.dumps(metricas, ensure_ascii=False, indent=2),
+              encoding="utf-8",
+          )
+          tmp_m.replace(arq_modelo)
+          print(f"   💾 Salvo: accr_{nome_modelo}_{sufixo}.json")
 
       # Remove checkpoint após relatório final gerado com sucesso
       if os.path.exists(nome_checkpoint):
