@@ -12,12 +12,14 @@ Este script é SEPARADO do agente de geração.
 Ele lê os JSONs gerados pelo agente e chama um LLM para avaliar.
 """
 
+import argparse
 import json
 import os
 import re
 import sys
 import tempfile
 import time
+from pathlib import Path
 from typing import List, Dict, Optional
 
 # Garante que config seja encontrado independente de onde o script é executado
@@ -25,53 +27,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "agent"))
 # Garante que auto_metrics seja encontrado (mesmo diretório)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import UserMessage
 from azure.core.credentials import AzureKeyCredential
 
 import config
+from token_manager import GerenciadorTokens
 
 # ─────────────────────────────────────────────────────────────────
 # Prompt ACCR
 # ─────────────────────────────────────────────────────────────────
 
-ACCR_PROMPT_TEMPLATE = """You will be given a caption generated for a short video segment. Your task is to rate the generated caption based on its accuracy in capturing the essential content of the video as described in the reference captions.
-
-Evaluation Criteria:
-Score is from 0 to 100 - The generated caption should accurately reflect the content in the reference captions and appropriately describe the key actions or events visible in the video. Annotators should penalize captions that include irrelevant details or omit significant elements indicated in the reference captions and the video.
-
-Evaluation Dimensions:
-Accuracy: Does the caption correctly describe the entities and actions shown in the video without errors or hallucinations?
-Completeness: Does the caption cover all significant events and aspects of the video, including dynamic actions and possible scene transitions?
-Conciseness: Is the caption clear and succinct, avoiding unnecessary details and repetition?
-Relevance: Is the caption pertinent to the video content, without including irrelevant information or questions?
-
-Evaluation Steps:
-1. Examine the provided reference captions carefully.
- 1) Read the full reference captions that describe the overall video content or specific actions.
- 2) Review each reference caption thoroughly to understand what aspects of the video they highlight.
-2. Read the generated caption.
- 1) Carefully read the generated caption that needs to be evaluated.
-3. Compare the generated caption with the reference captions and assess how well it captures the essence of the video.
-4. Evaluate how accurately and completely the generated caption describes the events and entities shown in the video.
-5. Check for the inclusion of irrelevant details or the omission of significant elements.
-6. Assign an integer score from 0 to 100 for each dimension.
-
-Reference captions: {reference}
-Generated caption: {caption}
-
-Response Format:
-You should first give detailed reason for your scores, then end with one sentence per score like this:
-..... The Accuracy score is α{{accuracy score}}α.
-..... The Completeness score is β{{completeness score}}β.
-..... The Conciseness score is ψ{{conciseness score}}ψ.
-..... The Relevance score is δ{{relevance score}}δ.
-
-Note: the score must be an integer from 0 to 100 wrapped in the corresponding Greek letter.
-Wrap Accuracy score in α
-Wrap Completeness score in β
-Wrap Conciseness score in ψ
-Wrap Relevance score in δ"""
+ACCR_PROMPT_TEMPLATE: str = (
+    Path(__file__).parent / "prompts" / "accr.txt"
+).read_text(encoding="utf-8")
 
 # ─────────────────────────────────────────────────────────────────
 # Carregamento de arquivos
@@ -116,80 +84,45 @@ def converter_gt_para_anet(gt_data: dict) -> dict:
 
 
 def avaliar_metricas_automatizadas(
-  predictions: dict,
+  predictions_file: str,
   arquivos_gt: List[str],
   arquivo_saida: str,
 ) -> dict:
   """
-  Calcula BLEU-1..4, METEOR, ROUGE-L e CIDEr usando ANETcaptions.
-  Converte predictions e GTs para o formato esperado e salva os resultados.
+  Calcula BLEU-4, METEOR, ROUGE-L, CIDEr e R@4 usando AvaliacaoAutomatica.
   """
   try:
-      from auto_metrics import ANETcaptions
+      from auto_metrics import AvaliacaoAutomatica
   except ImportError as e:
-      print(f"  ✗ metricas_automatizadas não encontrado: {e}")
+      print(f"  ✗ auto_metrics não encontrado: {e}")
       return {}
 
-  pred_anet = converter_predictions_para_anet(predictions)
-  if not pred_anet["results"]:
-      print("  ✗ Nenhuma prediction válida para avaliação")
-      return {}
-
-  # Grava predictions em arquivo temporário
-  with tempfile.NamedTemporaryFile(
-      mode="w", suffix=".json", delete=False, encoding="utf-8"
-  ) as f:
-      json.dump(pred_anet, f)
-      pred_path = f.name
-
-  # Converte e grava GTs em arquivos temporários
-  gt_paths = []
-  for arquivo_gt in arquivos_gt:
-      if not os.path.exists(arquivo_gt):
-          continue
-      gt_anet = converter_gt_para_anet(carregar_json(arquivo_gt))
-      with tempfile.NamedTemporaryFile(
-          mode="w", suffix=".json", delete=False, encoding="utf-8"
-      ) as f:
-          json.dump(gt_anet, f)
-          gt_paths.append(f.name)
-
-  if not gt_paths:
-      os.unlink(pred_path)
+  gt_validos = [f for f in arquivos_gt if os.path.exists(f)]
+  if not gt_validos:
       print("  ✗ Nenhum arquivo GT válido encontrado")
       return {}
 
   try:
-      evaluator = ANETcaptions(
-          ground_truth_filenames=gt_paths,
-          prediction_filename=pred_path,
+      evaluator = AvaliacaoAutomatica(
+          gt_files=gt_validos,
+          pred_file=predictions_file,
           verbose=True,
-          all_scorer=True,
       )
-      evaluator.evaluate()
-      scores = evaluator.scores
+      scores = evaluator.evaluate()
 
-      with open(arquivo_saida, "w", encoding="utf-8") as f:
-          json.dump(scores, f, ensure_ascii=False, indent=2)
+      Path(arquivo_saida).parent.mkdir(parents=True, exist_ok=True)
+      tmp = Path(arquivo_saida).with_suffix(".json.tmp")
+      tmp.write_text(json.dumps(scores, ensure_ascii=False, indent=2), encoding="utf-8")
+      tmp.replace(arquivo_saida)
 
-      print("\n" + "="*60)
-      print("MÉTRICAS AUTOMÁTICAS (BLEU · METEOR · ROUGE-L · CIDEr)")
-      print("="*60)
-      print(f"{'Métrica':<12} {'Score (0–100)':>14}")
-      print("-"*28)
-      for metric, score in scores.items():
-          print(f"{metric:<12} {100 * score:>14.3f}")
+      evaluator.print_results()
       print(f"\n✓ Métricas salvas em: {arquivo_saida}")
       return scores
 
   except Exception as e:
       print(f"  ✗ Erro ao calcular métricas: {e}")
       return {}
-  finally:
-      try:
-          os.unlink(pred_path)
-      except OSError:
-          pass
+
       for p in gt_paths:
           try:
               os.unlink(p)
@@ -202,7 +135,7 @@ def avaliar_metricas_automatizadas(
 class AvaliadorACCR:
   """
   Usa um LLM como juiz para calcular métricas ACCR.
-  Suporta GitHub Models: github_gpt4o | github_gemini | github_llama | github_deepseek
+  Suporta GitHub Models: github_gpt41 | github_llama | github_phi
   """
 
   # Regex primários (marcadores gregos)
@@ -228,86 +161,83 @@ class AvaliadorACCR:
   def __init__(self, provider: str = None, delay: float = None):
       """
       Args:
-          provider: github_gpt4o | github_gemini | github_llama | github_deepseek
+          provider: github_gpt41 | github_llama | github_phi
                     (padrão: config.EVALUATOR_PROVIDER)
           delay: segundos entre chamadas (padrão: 6.5s para respeitar 10 req/min)
       """
       self.provider = provider or config.EVALUATOR_PROVIDER
       self.delay = delay if delay is not None else self._DELAY_PADRAO
 
-      # Suporte a dois tokens para dobrar a cota diária (50+50=100 req/dia)
-      self._clients = []
-      self._calls   = []
-      for token in [config.GITHUB_TOKEN, getattr(config, "GITHUB_TOKEN_2", ""), getattr(config, "GITHUB_TOKEN_3", "")]:
-              self._clients.append(ChatCompletionsClient(
-                  endpoint=config.GITHUB_ENDPOINT,
-                  credential=AzureKeyCredential(token),
-                  retry_total=0,
-              ))
-              self._calls.append(0)
-      self._token_idx = 0
-
-      if not self._clients:
-          raise RuntimeError("Nenhum GITHUB_TOKEN configurado")
+      tokens = [
+          config.GITHUB_TOKEN,
+          getattr(config, "GITHUB_TOKEN_2", ""),
+          getattr(config, "GITHUB_TOKEN_3", ""),
+          getattr(config, "GITHUB_TOKEN_4", ""),
+          getattr(config, "GITHUB_TOKEN_5", ""),
+          getattr(config, "GITHUB_TOKEN_6", ""),
+          getattr(config, "GITHUB_TOKEN_7", ""),
+      ]
+      self._tokens = GerenciadorTokens(
+          tokens=tokens,
+          endpoint=config.GITHUB_ENDPOINT,
+          limite_diario=self._DAILY_LIMIT,
+          timeout=config.LLM_TIMEOUT,
+      )
 
   def _model_name(self) -> str:
       return {
-          "github_gpt4o":    config.GITHUB_GPT4O,
-          "github_llama":    config.GITHUB_LLAMA,
-          "github_deepseek": config.GITHUB_DEEPSEEK,
-      }.get(self.provider, config.GITHUB_GPT4O)
+          "github_gpt41": config.GITHUB_GPT41,
+          "github_llama": config.GITHUB_LLAMA,
+          "github_phi":   config.GITHUB_PHI,
+      }.get(self.provider, config.GITHUB_GPT41)
 
   # ── Chamada ao LLM ────────────────────────────────────────────
-
-  def _cliente_atual(self) -> ChatCompletionsClient:
-      """Retorna o cliente do token ativo, alternando quando a cota esgota."""
-      for _ in range(len(self._clients)):
-          if self._calls[self._token_idx] < self._DAILY_LIMIT:
-              return self._clients[self._token_idx]
-          print(f"  ⚠️  Token {self._token_idx + 1} esgotado — alternando")
-          self._token_idx = (self._token_idx + 1) % len(self._clients)
-      raise RuntimeError("Todos os tokens GitHub esgotaram a cota diária")
 
   def _chamar_llm(self, prompt: str) -> Optional[str]:
       """Envia prompt ao LLM e retorna o texto da resposta."""
       max_tentativas = 3
       for tentativa in range(max_tentativas):
           try:
-              cliente = self._cliente_atual()
+              cliente = self._tokens.cliente_atual()
               response = cliente.complete(
                   messages=[UserMessage(content=prompt)],
                   model=self._model_name(),
                   max_tokens=2048,
                   temperature=0.0,
               )
-              self._calls[self._token_idx] += 1
-              total = self._calls[self._token_idx]
-              print(f"    [Token {self._token_idx + 1}: {total}/{self._DAILY_LIMIT} req]")
+              chamadas = self._tokens.registrar_chamada()
+              print(f"    [Token {self._tokens.idx + 1}: {chamadas}/{self._tokens.limite_diario} req]")
               return response.choices[0].message.content
 
           except RuntimeError:
-              raise
+              # Todos os tokens esgotados — lançado pelo GerenciadorTokens
+              print("  ⚠️  Todos os tokens esgotados")
+              return None
           except Exception as e:
-              msg = str(e)
-              # Detecta rate limit: código 429 OU resposta HTML (JSON inválido com "too many requests")
+              msg = str(e).lower()
               is_rate_limit = (
                   '429' in msg
-                  or ('json is invalid' in msg.lower() and 'too many requests' in msg.lower())
+                  or ('json is invalid' in msg and 'too many requests' in msg)
               )
-              m = re.search(r'retry in (\d+)', msg)
-              wait = int(m.group(1)) + 5 if m else 65
+              is_timeout = 'read timed out' in msg or 'timed out' in msg or 'timeout' in msg
+              is_gateway = ('bad gateway' in msg or 'service unavailable' in msg
+                           or 'internal server error' in msg or 'unexpected eof' in msg
+                           or '502' in msg or '503' in msg or '500' in msg)
               if is_rate_limit:
-                  # Esgota o token atual e alterna para o próximo imediatamente
-                  print(f"  ⚠️  Rate limit — marcando token {self._token_idx + 1} como esgotado")
-                  self._calls[self._token_idx] = self._DAILY_LIMIT
-                  self._token_idx = (self._token_idx + 1) % len(self._clients)
-                  # Verifica se ainda há tokens disponíveis
-                  if all(c >= self._DAILY_LIMIT for c in self._calls):
-                      print("  ⚠️  Todos os tokens esgotados")
+                  ainda_ha = self._tokens.marcar_esgotado()
+                  if not ainda_ha:
                       return None
+                  # Continua o loop com o próximo token
+              elif is_timeout or is_gateway:
+                  espera = 20 * (tentativa + 1)
+                  motivo = "Timeout" if is_timeout else "Bad Gateway"
+                  print(f"    ⚠️  {motivo} (tentativa {tentativa + 1}/{max_tentativas}) — aguardando {espera}s")
+                  time.sleep(espera)
+                  # Continua o loop para nova tentativa
               else:
                   print(f"    ✗ Erro LLM ({self.provider}): {e}")
                   return None
+      print(f"    ✗ Esgotadas {max_tentativas} tentativas")
       return None
 
   # ── Parsing da resposta ───────────────────────────────────────
@@ -417,7 +347,7 @@ def preparar_para_comparacao(
           video_id: {
               modelo_nome:  [captions],
               "ground_truth": [refs],
-              "skimcap":    [captions] | None,
+              "SkimCap":    [captions] | None,
               modelo2_nome: [captions] | None,
               "timestamps": [[start, end], ...]
           }
@@ -442,13 +372,14 @@ def preparar_para_comparacao(
       gt_captions = gt.get("sentences", [])
 
       skimcap_captions = None
-      if skimcap_data and vid in skimcap_data:
-          skimcap_captions = skimcap_data[vid].get("results", [])
+      _sk_results = (skimcap_data or {}).get("results", {})
+      if vid in _sk_results:
+          skimcap_captions = [item.get("sentence", "") for item in _sk_results[vid]]
 
       entry = {
           modelo_nome:    captions,
           "ground_truth": gt_captions,
-          "skimcap":      skimcap_captions,
+          "SkimCap":      skimcap_captions,
           "timestamps":   timestamps
       }
 
@@ -501,7 +432,7 @@ def avaliar_video(
       }
 
       for modelo in modelos:
-          captions = dados.get(modelo, [])
+          captions = dados.get(modelo) or []
           caption = captions[i] if i < len(captions) else None
 
           print(f"    [{modelo}] {(caption or '[sem legenda]')[:80]}...")
@@ -558,6 +489,69 @@ def _agregar_scores(avaliacoes: List[dict]) -> dict:
   resultado["media_geral"] = round(sum(medias) / len(medias), 2) if medias else 0.0
   return resultado
 
+def _imprimir_tabela_resumo(
+  modelos: List[str],
+  metricas_por_modelo: dict,
+  todos_resultados: dict,
+) -> None:
+  """Imprime tabela resumo de scores ACCR e breakdown por vídeo no terminal."""
+  L = 72
+
+  # ── Tabela geral (média + intervalo min–max) ──────────────────
+  print("\n" + "─" * L)
+  print(f"{'MODELO':<20} {'Accuracy':>10} {'Completeness':>13} {'Conciseness':>12} {'Relevance':>10} {'Média':>7}")
+  print(f"{'':20} {'[min–max]':>10} {'[min–max]':>13} {'[min–max]':>12} {'[min–max]':>10}")
+  print("─" * L)
+
+  for modelo in modelos:
+      ag = metricas_por_modelo[modelo]
+
+      def _faixa(dim: str) -> str:
+          return f"{ag[dim]['min']}–{ag[dim]['max']}"
+
+      print(
+          f"{modelo:<20} "
+          f"{ag['accuracy']['media']:>10.1f} "
+          f"{ag['completeness']['media']:>13.1f} "
+          f"{ag['conciseness']['media']:>12.1f} "
+          f"{ag['relevance']['media']:>10.1f} "
+          f"{ag['media_geral']:>7.1f}"
+      )
+      print(
+          f"{'':20} "
+          f"{_faixa('accuracy'):>10} "
+          f"{_faixa('completeness'):>13} "
+          f"{_faixa('conciseness'):>12} "
+          f"{_faixa('relevance'):>10}"
+      )
+
+  # ── Tabela por vídeo ─────────────────────────────────────────
+  print("\n" + "─" * L)
+  print("SCORES POR VÍDEO (média ACCR por modelo)")
+  print("─" * L)
+
+  header = f"{'VIDEO_ID':<35}"
+  for m in modelos:
+      header += f" {m[:12]:>12}"
+  print(header)
+  print("─" * L)
+
+  for video_id, segmentos in todos_resultados.items():
+      linha = f"{video_id:<35}"
+      for modelo in modelos:
+          vals = [
+              seg["avaliacoes"][modelo]["media"]
+              for seg in segmentos
+              if modelo in seg.get("avaliacoes", {})
+              and seg["avaliacoes"][modelo].get("media", 0) > 0
+          ]
+          media_vid = round(sum(vals) / len(vals), 1) if vals else 0.0
+          linha += f" {media_vid:>12.1f}"
+      print(linha)
+
+  print("─" * L)
+
+
 def gerar_relatorio(
   todos_resultados: dict,
   arquivo_saida: str,
@@ -593,8 +587,13 @@ def gerar_relatorio(
       "resultados_por_video": todos_resultados
   }
 
-  with open(arquivo_saida, "w", encoding="utf-8") as f:
-      json.dump(relatorio, f, ensure_ascii=False, indent=2)
+  # Escrita atômica: evita JSON corrompido se interrompido
+  tmp = Path(arquivo_saida).with_suffix(".json.tmp")
+  tmp.write_text(
+      json.dumps(relatorio, ensure_ascii=False, indent=2),
+      encoding="utf-8",
+  )
+  tmp.replace(arquivo_saida)
 
   # ── Impressão do resumo ───────────────────────────────────────
   print("\n" + "="*60)
@@ -605,19 +604,7 @@ def gerar_relatorio(
   print(f"Segmentos   : {num_segmentos}")
   print(f"Dimensões   : Accuracy · Completeness · Conciseness · Relevance")
 
-  print(f"\n{'MODELO':<20} {'Acc':>6} {'Comp':>6} {'Conc':>6} {'Rel':>6} {'Média':>7}")
-  print("-" * 55)
-
-  for modelo in modelos:
-      ag = metricas_por_modelo[modelo]
-      print(
-          f"{modelo:<20} "
-          f"{ag['accuracy']['media']:>6.1f} "
-          f"{ag['completeness']['media']:>6.1f} "
-          f"{ag['conciseness']['media']:>6.1f} "
-          f"{ag['relevance']['media']:>6.1f} "
-          f"{ag['media_geral']:>7.1f}"
-      )
+  _imprimir_tabela_resumo(modelos, metricas_por_modelo, todos_resultados)
 
   print(f"\n✓ Relatório salvo em: {arquivo_saida}")
   return relatorio
@@ -626,24 +613,43 @@ def gerar_relatorio(
 # Main interativo
 # ─────────────────────────────────────────────────────────────────
 
-def main():
+def main(args=None):
   print("=" * 60)
   print("AVALIAÇÃO ACCR — LLM COMO AVALIADOR")
   print("Accuracy · Completeness · Conciseness · Relevance (0–100)")
   print("=" * 60)
 
-  # ── Caminhos fixos ────────────────────────────────────────────
+  # ── Caminhos e opções — CLI tem prioridade sobre defaults ──────
   BASE = os.path.dirname(__file__)
-  ARQUIVO_AGENTE  = os.path.join(BASE, "../../output/predictions.json")
-  ARQUIVOS_GT     = [
-      os.path.join(BASE, "../../data/ground_truth/anet_entities_test_1.json"),
-      os.path.join(BASE, "../../data/ground_truth/anet_entities_test_2.json"),
-  ]
-  ARQUIVO_SKIMCAP = os.path.join(BASE, "../../data/baselines/greedy_pred_test.json")
-  MODELO_NOME     = "GPT-4.1"
-  MODELO2_NOME    = None   # None = sem segundo modelo; ex: "LLaMA" para comparar
-  ARQUIVO_AGENTE2 = None   # caminho do segundo modelo se MODELO2_NOME for definido
-  INCLUIR_SKIMCAP = False  # True para incluir SkimCap na avaliação
+
+  ARQUIVO_AGENTE = (
+      args.predictions if args and args.predictions
+      else os.path.join(BASE, "../../output/predictions/predictions_gpt.json")
+  )
+  ARQUIVOS_GT = (
+      args.gt if args and args.gt
+      else [
+          os.path.join(BASE, "../../data/ground_truth/anet_entities_test_1.json"),
+          os.path.join(BASE, "../../data/ground_truth/anet_entities_test_2.json"),
+      ]
+  )
+  ARQUIVO_SKIMCAP = (
+      args.skimcap if args and args.skimcap
+      else os.path.join(BASE, "../../data/baselines/greedy_pred_test.json")
+  )
+  MODELO_NOME    = args.modelo_nome if args and hasattr(args, "modelo_nome") else "Modelo1"
+  INCLUIR_SKIMCAP = bool(args and args.skimcap)
+  OUTPUT_DIR     = args.output_dir if args and hasattr(args, "output_dir") else os.path.join(BASE, "../../output/metrics/accr")
+  ARQUIVO_AGENTE2 = (
+      args.predictions2
+      if args and hasattr(args, "predictions2") and args.predictions2
+      else None
+  )
+  MODELO2_NOME = (
+      args.modelo2_nome
+      if args and hasattr(args, "modelo2_nome") and args.modelo2_nome and ARQUIVO_AGENTE2
+      else None
+  )
 
   # 1. Primeiro modelo
   print("\n1. Carregando resultados do primeiro modelo...")
@@ -691,7 +697,7 @@ def main():
   if MODELO2_NOME:
       modelos.append(MODELO2_NOME)
   if incluir_skimcap:
-      modelos.append("skimcap")  # chave usada em preparar_para_comparacao
+      modelos.append("SkimCap")  # chave usada em preparar_para_comparacao
 
   # 6. Avaliação separada por GT
   for nome_gt, ground_truth in ground_truths.items():
@@ -710,8 +716,8 @@ def main():
       )
       print(f"   ✓ {len(dados)} vídeos preparados")
 
-      nome_saida      = os.path.join(BASE, f"../../output/accr_predictions_{sufixo}.json")
-      nome_checkpoint = os.path.join(BASE, f"../../output/accr_checkpoint_{sufixo}.json")
+      nome_saida      = os.path.join(OUTPUT_DIR, f"accr_predictions_{sufixo}.json")
+      nome_checkpoint = os.path.join(OUTPUT_DIR, f"accr_checkpoint_{sufixo}.json")
 
       # Retoma checkpoint anterior se existir
       todos_resultados = {}
@@ -728,9 +734,13 @@ def main():
               continue
           resultados_video = avaliar_video(video_id, dados_video, modelos, avaliador)
           todos_resultados[video_id] = resultados_video
-          # Salva checkpoint após cada vídeo
-          with open(nome_checkpoint, "w", encoding="utf-8") as f:
-              json.dump(todos_resultados, f, ensure_ascii=False, indent=2)
+          # Escrita atômica do checkpoint após cada vídeo
+          tmp_ck = Path(nome_checkpoint).with_suffix(".json.tmp")
+          tmp_ck.write_text(
+              json.dumps(todos_resultados, ensure_ascii=False, indent=2),
+              encoding="utf-8",
+          )
+          tmp_ck.replace(nome_checkpoint)
           print(f"   💾 Checkpoint salvo ({len(todos_resultados)}/{len(dados)} vídeos)")
 
       print("\n8. Gerando relatório...")
@@ -741,13 +751,58 @@ def main():
           os.remove(nome_checkpoint)
           print(f"   🗑 Checkpoint removido: {nome_checkpoint}")
 
-  # 9. Métricas automáticas (BLEU, METEOR, ROUGE-L, CIDEr)
-  print("\n" + "="*60)
-  print("9. Calculando métricas automáticas...")
-  nome_metricas = os.path.join(BASE, "../../output/metricas_automatizadas_predictions.json")
-  avaliar_metricas_automatizadas(resultados_agente, ARQUIVOS_GT, nome_metricas)
 
   print("\n✨ Avaliação concluída!")
 
 if __name__ == "__main__":
-  main()
+  _BASE = Path(__file__).parent
+
+  _parser = argparse.ArgumentParser(
+      description="Avaliação ACCR — LLM como avaliador de legendas de vídeo."
+  )
+  _parser.add_argument(
+      "--predictions", "-p", type=str,
+      default=str(_BASE / "../../output/predictions/predictions_gpt.json"),
+      help="predictions.json do modelo principal (ex: LLaMA)",
+  )
+  _parser.add_argument(
+      "--predictions2", "-p2", type=str, default=None,
+      help="predictions.json do segundo modelo (ex: GPT-4.1)",
+  )
+  _parser.add_argument(
+      "--gt", "-g", type=str, nargs="+",
+      default=[
+          str(_BASE / "../../data/ground_truth/anet_entities_test_1.json"),
+          str(_BASE / "../../data/ground_truth/anet_entities_test_2.json"),
+      ],
+      help="Arquivo(s) de ground truth (pode ser múltiplos)",
+  )
+  _parser.add_argument(
+      "--skimcap", "-s", type=str, default=None,
+      help="JSON da baseline SkimCap (opcional)",
+  )
+  _parser.add_argument(
+      "--provider", "-m", type=str, default=None,
+      choices=["github_gpt41", "github_llama", "github_phi"],
+      help=f"Modelo avaliador (padrão: {config.EVALUATOR_PROVIDER})",
+  )
+  _parser.add_argument(
+      "--modelo-nome", type=str, default="Modelo1",
+      help="Rótulo do modelo principal no relatório (padrão: Modelo1)",
+  )
+  _parser.add_argument(
+      "--modelo2-nome", type=str, default="Modelo2",
+      help="Rótulo do segundo modelo no relatório (padrão: Modelo2)",
+  )
+  _parser.add_argument(
+      "--output-dir", "-o", type=str,
+      default=str(_BASE / "../../output/metrics/accr"),
+      help="Pasta de saída para relatórios ACCR",
+  )
+  _args = _parser.parse_args()
+
+  # Injeta provider no config se fornecido via CLI
+  if _args.provider:
+      config.EVALUATOR_PROVIDER = _args.provider
+
+  main(_args)

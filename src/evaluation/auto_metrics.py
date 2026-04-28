@@ -27,19 +27,22 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 import numpy as np
 from collections import Counter
 from pathlib import Path
 
 # ─── Caminhos padrão ─────────────────────────────────────────
 _DIR         = Path(__file__).parent
-DEFAULT_PRED = str(_DIR / ".." / ".." / "output" / "predictions.json")
+DEFAULT_PRED = str(_DIR / ".." / ".." / "output" / "predictions" / "predictions_gpt.json")
 DEFAULT_GT_1 = str(_DIR / ".." / ".." / "data" / "ground_truth" / "anet_entities_test_1.json")
 DEFAULT_GT_2 = str(_DIR / ".." / ".." / "data" / "ground_truth" / "anet_entities_test_2.json")
-DEFAULT_OUT  = str(_DIR / ".." / ".." / "output" / "metricas.json")
+DEFAULT_OUT  = str(_DIR / ".." / ".." / "output" / "metrics" / "auto" / "metricas.json")
 
-# ─── Tenta importar pycocoevalcap (mesmos scorers do original) ─
+# ─── Tenta importar pycocoevalcap (pip ou pasta local) ────────
 _COCO_OK = False
+
+# 1) Adiciona pasta local ao path, se existir
 for _cand in [
   _DIR / "coco-caption",
   _DIR / ".." / "coco-caption",
@@ -47,32 +50,29 @@ for _cand in [
 ]:
   if (_cand / "pycocoevalcap").exists():
       sys.path.insert(0, str(_cand.resolve()))
-      _COCO_OK = True
       break
 
-if _COCO_OK:
-  try:
-      from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer   # noqa: F401
-      from pycocoevalcap.bleu.bleu   import Bleu
-      from pycocoevalcap.meteor.meteor import Meteor
-      from pycocoevalcap.rouge.rouge import Rouge
-      from pycocoevalcap.cider.cider import Cider
-  except Exception as e:
-      print(f"⚠️  pycocoevalcap encontrado mas com erro: {e}")
-      _COCO_OK = False
+# 2) Tenta import (funciona tanto via pip quanto via pasta local)
+try:
+  from pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer   # noqa: F401
+  from pycocoevalcap.bleu.bleu   import Bleu
+  from pycocoevalcap.rouge.rouge import Rouge
+  from pycocoevalcap.cider.cider import Cider
+  _COCO_OK = True
+except Exception as e:
+  print(f"⚠️  pycocoevalcap indisponível: {e}")
 
-# ─── Fallback: nltk ───────────────────────────────────────────
+# ─── nltk (METEOR sem Java) ───────────────────────────────────
 _NLTK_OK = False
-if not _COCO_OK:
-  try:
-      import nltk
-      from nltk.translate.bleu_score  import corpus_bleu, SmoothingFunction
-      from nltk.translate.meteor_score import meteor_score as _meteor_fn
-      nltk.download("wordnet",  quiet=True)
-      nltk.download("omw-1.4", quiet=True)
-      _NLTK_OK = True
-  except ImportError:
-      pass
+try:
+  import nltk
+  from nltk.translate.bleu_score   import corpus_bleu, SmoothingFunction
+  from nltk.translate.meteor_score import meteor_score as _meteor_fn
+  nltk.download("wordnet",  quiet=True)
+  nltk.download("omw-1.4", quiet=True)
+  _NLTK_OK = True
+except ImportError:
+  pass
 
 # ══════════════════════════════════════════════════════════════
 # UTILITÁRIOS  (iguais ao original ANETcaptions)
@@ -157,7 +157,7 @@ def _fallback_rouge_l(gts: dict, res: dict) -> float:
   return float(np.mean(scores)) if scores else 0.0
 
 def _fallback_bleu(gts: dict, res: dict) -> dict:
-  """Retorna Bleu_1…Bleu_4 via nltk."""
+  """Retorna só Bleu_4 via nltk."""
   if not _NLTK_OK:
       return {}
   refs_list, hyps_list = [], []
@@ -165,17 +165,11 @@ def _fallback_bleu(gts: dict, res: dict) -> dict:
       refs_list.append([parse_sent(r) for r in gts.get(k, [""])])
       hyps_list.append(parse_sent(res[k][0] if res[k] else ""))
   smooth = SmoothingFunction().method1
-  out = {}
-  for n, w in [
-      ("Bleu_1", (1, 0, 0, 0)),
-      ("Bleu_2", (0.5, 0.5, 0, 0)),
-      ("Bleu_3", (1/3, 1/3, 1/3, 0)),
-      ("Bleu_4", (0.25, 0.25, 0.25, 0.25)),
-  ]:
-      out[n] = corpus_bleu(refs_list, hyps_list,
-                           weights=w,
-                           smoothing_function=smooth)
-  return out
+  return {
+      "Bleu_4": corpus_bleu(refs_list, hyps_list,
+                            weights=(0.25, 0.25, 0.25, 0.25),
+                            smoothing_function=smooth),
+  }
 
 def _fallback_meteor(gts: dict, res: dict) -> float:
   if not _NLTK_OK:
@@ -250,7 +244,8 @@ class AvaliacaoAutomatica:
     3. Acrescenta R@4 (repetição entre segmentos)
   """
 
-  def __init__(self, gt_files: list, pred_file: str, verbose: bool = False):
+  def __init__(self, gt_files: list, pred_file: str, verbose: bool = False,
+               restrict_ids: set | None = None):
       self.verbose = verbose
 
       # Predições: raw (por segmento) e parágrafo
@@ -258,6 +253,9 @@ class AvaliacaoAutomatica:
 
       # Ground truths: um dict por arquivo (multi-referência)
       self.ground_truths = [load_ground_truth(f) for f in gt_files]
+
+      # IDs a avaliar: preditos ∩ GT (∩ restrict_ids se fornecido)
+      self._restrict_ids = restrict_ids
 
       if self.verbose:
           n_gt = len(set().union(*[set(g.keys()) for g in self.ground_truths]))
@@ -271,6 +269,11 @@ class AvaliacaoAutomatica:
       ids: set = set()
       for gt in self.ground_truths:
           ids |= set(gt.keys())
+      # Restringe aos vídeos que têm predição gerada
+      ids &= set(self.prediction.keys())
+      # Restringe ao conjunto de referência (para comparação justa entre modelos)
+      if self._restrict_ids:
+          ids &= self._restrict_ids
       return sorted(ids)
 
   def _build_gts_res(self):
@@ -315,43 +318,36 @@ class AvaliacaoAutomatica:
       gt_vid_ids, gts, res = self._build_gts_res()
       output = {}
 
-      # ── pycocoevalcap (scorers idênticos ao original) ─────
+      # ── pycocoevalcap: BLEU-4, ROUGE-L, CIDEr (sem METEOR — requer Java) ─
       if _COCO_OK:
           scorers = [
-              (Bleu(4),  ["Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"]),
-              (Meteor(), "METEOR"),
+              (Bleu(4),  "Bleu_4"),
               (Rouge(),  "ROUGE_L"),
               (Cider(),  "CIDEr"),
           ]
           for scorer, method in scorers:
-              label = method[-1] if isinstance(method, list) else method
               if self.verbose:
-                  print(f"  🔍 Computing {label}...")
+                  print(f"  🔍 Computing {method}...")
               score, _ = scorer.compute_score(gts, res)
-              if isinstance(method, list):
-                  for i, m in enumerate(method):
-                      output[m] = score[i]
-              else:
-                  output[method] = score
-
-      # ── Fallback: nltk + ROUGE-L built-in ─────────────────
+              # Bleu scorer retorna lista [b1,b2,b3,b4] — pegar só BLEU-4
+              output[method] = score[3] if method == "Bleu_4" else score
       else:
           if self.verbose:
               print("  ⚠️  Modo fallback (sem pycocoevalcap)")
-
           if _NLTK_OK:
-              if self.verbose: print("  🔍 Computing BLEU 1-4 (nltk)...")
+              if self.verbose: print("  🔍 Computing BLEU-4 (nltk)...")
               output.update(_fallback_bleu(gts, res))
-
-              if self.verbose: print("  🔍 Computing METEOR (nltk)...")
-              v = _fallback_meteor(gts, res)
-              if v >= 0:
-                  output["METEOR"] = v
           else:
               print("  💡 Instale nltk: pip install nltk")
-
           if self.verbose: print("  🔍 Computing ROUGE-L (built-in)...")
           output["ROUGE_L"] = _fallback_rouge_l(gts, res)
+
+      # ── METEOR via nltk (sem Java) ────────────────────────
+      if _NLTK_OK:
+          if self.verbose: print("  🔍 Computing METEOR (nltk)...")
+          v = _fallback_meteor(gts, res)
+          if v >= 0:
+              output["METEOR"] = v
 
       # ── R@4 (sempre disponível) ───────────────────────────
       if self.verbose:
@@ -381,9 +377,6 @@ class AvaliacaoAutomatica:
           ("ROUGE_L", "ROUGE-L"),
           ("METEOR",  "METEOR"),
           ("R@4",     "R@4  (↓ melhor)"),
-          ("Bleu_1",  "BLEU-1"),
-          ("Bleu_2",  "BLEU-2"),
-          ("Bleu_3",  "BLEU-3"),
       ]
       shown = set()
       for key, label in order:
@@ -413,33 +406,208 @@ class AvaliacaoAutomatica:
 # MAIN
 # ══════════════════════════════════════════════════════════════
 
+def _converter_skimcap_para_tmp(skimcap_path: str) -> str:
+    """
+    Converte greedy_pred_test.json (formato SkimCap/ANETcaptions) para
+    o formato predictions.json do projeto e salva em arquivo temporário.
+
+    Formato SkimCap de entrada:
+      {"results": {video_id: [{"sentence": ..., "timestamp": [s, e]}, ...]}}
+
+    Retorna o caminho do arquivo temporário (deve ser deletado após uso).
+    """
+    with open(skimcap_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    results = data.get("results", {})
+    videos = []
+    for vid, segs in results.items():
+        segments = [
+            {
+                "segment_id": i,
+                "timestamps": seg.get("timestamp", [0, 0]),
+                "caption": seg.get("sentence", ""),
+            }
+            for i, seg in enumerate(segs)
+        ]
+        videos.append({"video_id": vid, "segments": segments})
+
+    predictions = {"videos": videos}
+
+    fd, tmp_path = tempfile.mkstemp(suffix=".json")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(predictions, f, ensure_ascii=False)
+    return tmp_path
+
+
+def _imprimir_tabela_comparacao(resultados: dict) -> None:
+    """
+    Imprime tabela resumo comparando métricas automáticas de vários modelos.
+
+    resultados: {label: scores_dict}
+    """
+    METRICAS = [
+        ("CIDEr",   "CIDEr-D"),
+        ("Bleu_4",  "BLEU-4"),
+        ("ROUGE_L", "ROUGE-L"),
+        ("METEOR",  "METEOR"),
+        ("R@4",     "R@4 (↓ melhor)"),
+    ]
+    modelos = list(resultados.keys())
+    col = 12
+    L = 24 + col * len(modelos)
+
+    print("\n" + "═" * L)
+    print("  COMPARAÇÃO — MÉTRICAS AUTOMÁTICAS")
+    print("═" * L)
+
+    header = f"  {'MÉTRICA':<22}"
+    for m in modelos:
+        header += f" {m[:col]:>{col}}"
+    print(header)
+    print("─" * L)
+
+    mostradas: set = set()
+    for key, label in METRICAS:
+        if any(key in resultados[m] for m in modelos):
+            linha = f"  {label:<22}"
+            for m in modelos:
+                v = resultados[m].get(key)
+                linha += f" {v * 100:>{col}.2f}%" if v is not None else f" {'—':>{col}}"
+            print(linha)
+            mostradas.add(key)
+
+    extras = {k for s in resultados.values() for k in s} - mostradas
+    for key in sorted(extras):
+        linha = f"  {key:<22}"
+        for m in modelos:
+            v = resultados[m].get(key)
+            linha += f" {v * 100:>{col}.2f}%" if v is not None else f" {'—':>{col}}"
+        print(linha)
+
+    print("═" * L + "\n")
+
+
+def _avaliar_e_salvar(
+    gt_files: list,
+    pred_file: str,
+    output_path: str,
+    verbose: bool,
+    label: str = "",
+    restrict_ids: set | None = None,
+) -> dict:
+    """Avalia um arquivo de predições e salva o JSON de métricas."""
+    tag = f" [{label}]" if label else ""
+    print(f"\n{'─'*55}")
+    print(f"  Predictions{tag}: {pred_file}")
+    print(f"{'─'*55}")
+
+    evaluator = AvaliacaoAutomatica(
+        gt_files=gt_files,
+        pred_file=pred_file,
+        verbose=verbose,
+        restrict_ids=restrict_ids,
+    )
+    evaluator.evaluate()
+    evaluator.print_results()
+
+    if verbose:
+        evaluator.print_per_video()
+
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(evaluator.scores, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(out)
+    print(f"✅ Métricas salvas em: {out}")
+    return evaluator.scores
+
+
 def main(args):
-  mode = "pycocoevalcap ✓" if _COCO_OK else "fallback (nltk + built-in)"
-  print("\n" + "=" * 55)
-  print("  AVALIAÇÃO AUTOMÁTICA DE LEGENDAS DE VÍDEO")
-  print("=" * 55)
-  print(f"  Predictions : {args.predictions}")
-  print(f"  Ground truth: {len(args.references)} arquivo(s)")
-  print(f"  Modo        : {mode}")
-  print("=" * 55)
+    mode = "pycocoevalcap ✓" if _COCO_OK else "fallback (nltk + built-in)"
 
-  evaluator = AvaliacaoAutomatica(
-      gt_files  = args.references,
-      pred_file = args.predictions,
-      verbose   = args.verbose,
-  )
-  evaluator.evaluate()
-  evaluator.print_results()
+    label1       = getattr(args, "modelo_nome",  "") or Path(args.predictions).stem
+    predictions2 = getattr(args, "predictions2", None)
+    label2       = (getattr(args, "modelo2_nome", "") or Path(predictions2).stem) if predictions2 else None
+    skimcap_path = getattr(args, "skimcap", None)
+    out_dir      = Path(args.output)
 
-  if args.verbose:
-      evaluator.print_per_video()
+    print("\n" + "=" * 55)
+    print("  AVALIAÇÃO AUTOMÁTICA DE LEGENDAS DE VÍDEO")
+    print("=" * 55)
+    print(f"  Ground truth: {len(args.references)} arquivo(s)")
+    print(f"  Modo        : {mode}")
+    print("=" * 55)
 
-  # Salva métricas em JSON
-  out = Path(args.output)
-  out.parent.mkdir(parents=True, exist_ok=True)
-  with open(out, "w", encoding="utf-8") as f:
-      json.dump(evaluator.scores, f, indent=2, ensure_ascii=False)
-  print(f"✅ Métricas salvas em: {out}\n")
+    # Converte SkimCap uma vez (reutilizado em todos os GTs)
+    skimcap_tmp: str | None = None
+    if skimcap_path and Path(skimcap_path).exists():
+        skimcap_tmp = _converter_skimcap_para_tmp(skimcap_path)
+
+    try:
+        # ── Loop por GT (igual ao llm_eval.py) ───────────────────
+        for gt_file in args.references:
+            sufixo = Path(gt_file).stem  # ex: anet_entities_test_1
+
+            print(f"\n{'═'*55}")
+            print(f"  GT: {Path(gt_file).name}")
+            print(f"{'═'*55}")
+
+            todos_scores: dict = {}
+
+            # Modelo 1
+            out1 = str(out_dir / f"metricas_{label1}_{sufixo}.json")
+            scores1 = _avaliar_e_salvar(
+                gt_files=[gt_file],
+                pred_file=args.predictions,
+                output_path=out1,
+                verbose=args.verbose,
+                label=label1,
+            )
+            todos_scores[label1] = scores1
+
+            # IDs avaliados no modelo 1 — base para comparação justa
+            _ref_ids: set | None = None
+            try:
+                _raw, _para = load_predictions(args.predictions)
+                _gt = load_ground_truth(gt_file)
+                _ref_ids = set(_para.keys()) & set(_gt.keys())
+            except Exception:
+                pass
+
+            # Modelo 2 (opcional)
+            if predictions2 and Path(predictions2).exists():
+                out2 = str(out_dir / f"metricas_{label2}_{sufixo}.json")
+                todos_scores[label2] = _avaliar_e_salvar(
+                    gt_files=[gt_file],
+                    pred_file=predictions2,
+                    output_path=out2,
+                    verbose=args.verbose,
+                    label=label2,
+                    restrict_ids=_ref_ids,
+                )
+
+            # SkimCap (opcional)
+            if skimcap_tmp:
+                out_sc = str(out_dir / f"metricas_skimcap_{sufixo}.json")
+                todos_scores["SkimCap"] = _avaliar_e_salvar(
+                    gt_files=[gt_file],
+                    pred_file=skimcap_tmp,
+                    output_path=out_sc,
+                    verbose=args.verbose,
+                    label="SkimCap",
+                    restrict_ids=_ref_ids,
+                )
+
+            # Tabela comparativa para este GT
+            if len(todos_scores) > 1:
+                _imprimir_tabela_comparacao(todos_scores)
+            else:
+                print()
+
+    finally:
+        if skimcap_tmp:
+            Path(skimcap_tmp).unlink(missing_ok=True)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
@@ -448,7 +616,25 @@ if __name__ == "__main__":
   parser.add_argument(
       "-p", "--predictions",
       type=str, default=DEFAULT_PRED,
-      help=f"predictions.json do projeto  (padrão: {DEFAULT_PRED})",
+      help=f"predictions.json do modelo principal  (padrão: {DEFAULT_PRED})",
+  )
+  parser.add_argument(
+      "-p2", "--predictions2",
+      type=str, default=None,
+      help="predictions.json do segundo modelo (opcional)",
+  )
+  parser.add_argument(
+      "-s", "--skimcap",
+      type=str, default=None,
+      help="greedy_pred_test.json da baseline SkimCap (opcional)",
+  )
+  parser.add_argument(
+      "--modelo-nome", dest="modelo_nome", type=str, default="",
+      help="Rótulo do modelo principal na tabela comparativa",
+  )
+  parser.add_argument(
+      "--modelo2-nome", dest="modelo2_nome", type=str, default="",
+      help="Rótulo do segundo modelo na tabela comparativa",
   )
   parser.add_argument(
       "-r", "--references",
@@ -458,8 +644,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "-o", "--output",
-      type=str, default=DEFAULT_OUT,
-      help=f"Saída JSON com as métricas  (padrão: {DEFAULT_OUT})",
+      type=str, default=str(Path(DEFAULT_OUT).parent),
+      help=f"Pasta de saída para os JSONs de métricas (padrão: output/)",
   )
   parser.add_argument(
       "-v", "--verbose",
