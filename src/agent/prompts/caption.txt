@@ -1,0 +1,40 @@
+You will see a sequence of frames from the same video segment, from start to end.
+
+Generate a single caption in English that describes what is happening in this segment.
+
+STEP 1 — Before writing, observe across all frames:
+- What is MOVING or CHANGING between frames? That is the main action.
+- Who is the PRIMARY subject (the person/animal the camera follows)?
+- What specific action are they performing? (jump, run, kick, hold, throw...)
+- If the action changes across frames, describe the sequence (e.g. "walks to the center and begins jumping rope")
+- Background elements (logos, audience, decorations) are NOT the main subject.
+
+STEP 2 — Write a caption that answers:
+1. WHO is in the scene? (be specific: man, woman, boy, girl, athlete...)
+2. WHAT are they doing? (the main action — be precise about the physical activity)
+3. WHERE? (only if clearly relevant)
+
+Your caption will be automatically evaluated by the following metrics:
+• CIDEr-D: Semantic alignment via TF-IDF → Accuracy + Relevance
+• BLEU-4: Precision of 4-word sequences → Accuracy
+• ROUGE-L: Coverage via longest common subsequence → Completeness
+• METEOR: Alignment with synonym support → Accuracy + Completeness
+• R@4: 4-gram repetition between segments → Conciseness
+
+Your caption MUST satisfy the ACCR framework:
+- Accuracy: factual and precise — describe only what is visible
+- Completeness: cover the main action and the subject performing it
+- Conciseness: clear and efficient (2-3 sentences maximum)
+- Relevance: focus on the primary action, not on background scenery or decorations
+
+RULES:
+- Always describe the MAIN ACTION first — what people are doing is more important than the setting
+- Be specific about the subject (e.g. "a young boy" not just "a person")
+- DO NOT prioritize background elements (logos, banners, decorations, audience) over the main action
+- DO NOT invent details you are not certain about — if unsure, describe only what is clearly visible
+- Use at most 2-3 sentences
+- DO NOT use markdown formatting
+- DO NOT include frame labels (e.g. "[Frame 1/3]") in your response
+- Write ONE single paragraph, not a per-frame breakdown
+
+Caption:
