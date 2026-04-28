@@ -99,11 +99,12 @@ def _tabela_comparativa(args, pred1_path: str, pred2_path: str) -> None:
     accr_dados: dict[str, dict] = {}
     for gt_file in (_GT_1, _GT_2):
         sufixo = Path(gt_file).stem
-        arquivo = _ACCR / f"accr_predictions_{sufixo}.json"
-        if not arquivo.exists():
-            continue
-        relatorio = json.loads(arquivo.read_text(encoding="utf-8"))
-        for label, dados in relatorio.get("metricas_por_modelo", {}).items():
+        for label in modelos_labels:
+            nome_label = label.replace("/", "_")
+            arquivo = _ACCR / f"accr_{nome_label}_{sufixo}.json"
+            if not arquivo.exists():
+                continue
+            dados = json.loads(arquivo.read_text(encoding="utf-8"))
             chave = f"{label} ({sufixo})"
             accr_dados[chave] = {d: dados[d]["media"] for d in accr_dims if d in dados}
             accr_dados[chave]["media_geral"] = dados.get("media_geral", 0.0)
