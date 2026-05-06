@@ -8,12 +8,14 @@ Etapas:
   1. Geração  — dois modelos LLM (model1 + model2) via main.py
   2. ACCR     — LLM como avaliador (model1 + model2 + SkimCap) via llm_eval.py
   3. Auto     — métricas automáticas (model1 + model2 + SkimCap) via auto_metrics.py
+  4. Plots    — gráficos comparativos via scripts/gerar_graficos.py
 
 Uso rápido:
   python pipeline.py                          # roda tudo com defaults
   python pipeline.py --skip-gen               # pula geração (usa JSONs existentes)
   python pipeline.py --limit 5               # processa só 5 vídeos
   python pipeline.py --skip-accr             # pula avaliação ACCR (economiza tokens)
+  python pipeline.py --skip-plots            # pula geração de gráficos
   python pipeline.py --help
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
@@ -36,6 +38,7 @@ _OUTPUT  = _ROOT / "output"
 _PRED    = _OUTPUT / "predictions"   # predictions.json, predictions_llama.json ...
 _AUTO    = _OUTPUT / "metrics" / "auto"  # metricas_*.json
 _ACCR    = _OUTPUT / "metrics" / "accr"  # accr_checkpoint_*.json
+_PLOTS   = _OUTPUT / "plots"              # gráficos gerados
 _GT_1    = str(_DATA / "ground_truth" / "anet_entities_test_1.json")
 _GT_2    = str(_DATA / "ground_truth" / "anet_entities_test_2.json")
 _SKIMCAP = str(_DATA / "baselines" / "greedy_pred_test.json")
@@ -476,13 +479,17 @@ def main() -> None:
 
     # ── Dados ─────────────────────────────────────────────────────
     parser.add_argument(
+        "--skip-plots", action="store_true",
+        help="Pula a geração de gráficos (passo 4)",
+    )
+    parser.add_argument(
         "--no-skimcap", action="store_true",
         help="Exclui SkimCap da avaliação",
     )
 
     args = parser.parse_args()
 
-    for d in (_OUTPUT, _PRED, _AUTO, _ACCR):
+    for d in (_OUTPUT, _PRED, _AUTO, _ACCR, _PLOTS):
         d.mkdir(parents=True, exist_ok=True)
 
     pred1_path = str(_PRED / args.pred1)
@@ -495,7 +502,7 @@ def main() -> None:
     print(f"  Modelo 1    : {args.nome1} → {args.pred1}")
     print(f"  Modelo 2    : {args.nome2} → {Path(pred2_path).name}")
     print(f"  SkimCap     : {'não' if args.no_skimcap else 'sim'}")
-    print(f"  Etapas      : {'geração ' if not args.skip_gen else ''}{'ACCR ' if not args.skip_accr else ''}{'auto-métricas' if not args.skip_auto else ''}")
+    print(f"  Etapas      : {'geração ' if not args.skip_gen else ''}{'ACCR ' if not args.skip_accr else ''}{'auto-métricas ' if not args.skip_auto else ''}{'plots' if not args.skip_plots else ''}")
     print("═" * 60)
 
     ok = True
@@ -572,6 +579,21 @@ def main() -> None:
         ok = _rodar(cmd, "Métricas automáticas")
     else:
         _passo(3, "MÉTRICAS AUTOMÁTICAS — pulada (--skip-auto)")
+
+    # ══ PASSO 4: GRÁFICOS ════════════════════════════════════════
+    if not args.skip_plots:
+        _passo(4, "GRÁFICOS COMPARATIVOS")
+        cmd = [
+            _PYTHON, str(_ROOT / "scripts" / "gerar_graficos.py"),
+            "--auto-dir",   str(_AUTO),
+            "--accr-dir",   str(_ACCR),
+            "--output-dir", str(_PLOTS),
+        ]
+        ok = _rodar(cmd, "Gerando gráficos")
+        if not ok:
+            print("  ⚠ Geração de gráficos falhou — verifique se matplotlib e scipy estão instalados")
+    else:
+        _passo(4, "GRÁFICOS — pulados (--skip-plots)")
 
     # ══ RESUMO FINAL ══════════════════════════════════════════════
     print("\n" + "═" * 60)

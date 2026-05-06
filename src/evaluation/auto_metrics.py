@@ -589,7 +589,7 @@ def main(args):
 
             # SkimCap (opcional)
             if skimcap_tmp:
-                out_sc = str(out_dir / f"metricas_skimcap_{sufixo}.json")
+                out_sc = str(out_dir / f"metricas_SkimCap_{sufixo}.json")
                 todos_scores["SkimCap"] = _avaliar_e_salvar(
                     gt_files=[gt_file],
                     pred_file=skimcap_tmp,
