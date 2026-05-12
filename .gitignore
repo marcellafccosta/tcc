@@ -29,9 +29,6 @@ env/
 # Output
 output/frames/
 output/videos/
-output/plots/
-output/metrics/
-output/predictions/
 
 # Jupyter
 .ipynb_checkpoints/
