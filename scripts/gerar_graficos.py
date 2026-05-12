@@ -81,9 +81,13 @@ _CORES_GT = ["#4C72B0", "#DD8452"]
 # Normaliza variantes de nome para uma forma canônica consistente
 _MODELO_CANON = {
     "skimcap": "SkimCap",
-    "llama":   "LLaMA-4",
-    "llama-4": "LLaMA-4",
+    "llama":   "LLaMA",
+    "llama-4": "LLaMA",
     "gpt-4.1": "GPT-4.1",
+    "predictions_gpt": "GPT-4.1",
+    "predictions_llama": "LLaMA",
+    "modelo1": "GPT-4.1",
+    "modelo2": "LLaMA",
 }
 
 def _canon(nome: str) -> str:
@@ -520,7 +524,7 @@ def grafico_kde_accr(segmentos: list, saida: Path) -> None:
     for ax_idx, (dim, label) in enumerate(zip(dims, rotulos)):
         ax = axes[ax_idx]
         for idx, modelo in enumerate(modelos):
-            vals = [s[dim] for s in segmentos if s["modelo"] == modelo and s[dim] > 0]
+            vals = [s[dim] for s in segmentos if s["modelo"] == modelo and s[dim] is not None and s[dim] > 0]
             if len(vals) < 3:
                 continue
             cor = _CORES[idx % len(_CORES)]
@@ -581,7 +585,7 @@ def grafico_correlacao(segmentos: list, saida: Path) -> None:
             pares = [
                 (s[dim], s[met_key])
                 for s in validos
-                if s.get(met_key, -1) >= 0
+                if s.get(met_key, -1) >= 0 and s[dim] is not None
             ]
             if len(pares) < 5:
                 continue
@@ -803,7 +807,9 @@ def grafico_rank_stability(auto: dict, accr: dict, saida: Path) -> None:
 # ─────────────────────────────────────────────────────────────
 
 def _norm_accr(v: float) -> float:
-    """Normaliza ACCR (0–100) → (0–1)."""
+    """Normaliza ACCR (0–100) → (0–1). Retorna 0 se None."""
+    if v is None:
+        return 0.0
     return v / 100.0
 
 
@@ -841,20 +847,26 @@ def grafico_correlacao_sig(segmentos: list, saida: Path) -> None:
 
     for i, dim in enumerate(dims_accr):
         for j, (met_key, _) in enumerate(metricas_auto):
-            pares = [
-                (s[dim], s[met_key])
-                for s in validos
-                if s.get(met_key, -1) >= 0
-            ]
+            pares = []
+            for s in validos:
+                accr_val = s.get(dim)
+                auto_val = s.get(met_key, -1)
+                if accr_val is not None and auto_val >= 0:
+                    pares.append((accr_val, auto_val))
             if len(pares) < 5:
                 continue
             x_arr, y_arr = zip(*pares)
+            x_arr = [float(x) for x in x_arr if x is not None]
+            y_arr = [float(y) for y in y_arr if y is not None]
+            if len(x_arr) < 5 or len(y_arr) < 5:
+                continue
             if _SCIPY_OK:
                 r, p = spearmanr(x_arr, y_arr)
                 matriz[i, j] = r
                 p_mat[i, j]  = p
             else:
-                matriz[i, j] = np.corrcoef(x_arr, y_arr)[0, 1]
+                if len(x_arr) >= 2:
+                    matriz[i, j] = np.corrcoef(x_arr, y_arr)[0, 1]
 
     fig, ax = plt.subplots(figsize=(max(5, n_auto * 2.5), 5))
     im = ax.imshow(matriz, cmap="RdBu_r", aspect="auto", vmin=-1, vmax=1)
@@ -901,7 +913,7 @@ def grafico_bland_altman(segmentos: list, saida: Path) -> None:
     Linhas tracejadas em ±1.96 DP (limites de concordância).
     Um subplot por modelo.
     """
-    validos   = [s for s in segmentos if s.get("rouge_l", -1) >= 0]
+    validos   = [s for s in segmentos if s.get("rouge_l", -1) >= 0 and s.get("accuracy") is not None]
     modelos   = sorted({s["modelo"] for s in validos})
     if not modelos or not validos:
         return
@@ -976,7 +988,7 @@ def grafico_parallel_coordinates(segmentos: list, saida: Path) -> None:
         ("relevance",    "Relevance"),
     ]
 
-    validos = [s for s in segmentos if s.get("rouge_l", -1) >= 0]
+    validos = [s for s in segmentos if s.get("rouge_l") is not None and s.get("rouge_l", -1) >= 0]
     if not validos:
         return
 
@@ -986,7 +998,11 @@ def grafico_parallel_coordinates(segmentos: list, saida: Path) -> None:
     # Min-max por eixo para normalização
     vals_por_eixo: dict = {}
     for key, _ in eixos_cfg:
-        col = [s[key] for s in validos if s.get(key, -1) >= 0]
+        col = []
+        for s in validos:
+            v = s.get(key)
+            if v is not None and v >= 0:
+                col.append(v)
         mn, mx = (min(col), max(col)) if col else (0.0, 1.0)
         vals_por_eixo[key] = (mn, mx if mx > mn else mn + 1e-9)
 
@@ -1006,7 +1022,7 @@ def grafico_parallel_coordinates(segmentos: list, saida: Path) -> None:
         x_vals, y_vals = [], []
         for ei, (key, _) in enumerate(eixos_cfg):
             raw = seg.get(key, -1)
-            if raw >= 0:
+            if raw is not None and raw >= 0:
                 x_vals.append(ei)
                 y_vals.append(_norm(raw, key))
         if len(x_vals) >= 2:
@@ -1018,7 +1034,11 @@ def grafico_parallel_coordinates(segmentos: list, saida: Path) -> None:
         segs_m = [s for s in validos if s["modelo"] == modelo]
         x_med, y_med = [], []
         for ei, (key, _) in enumerate(eixos_cfg):
-            col = [s[key] for s in segs_m if s.get(key, -1) >= 0]
+            col = []
+            for s in segs_m:
+                v = s.get(key)
+                if v is not None and v >= 0:
+                    col.append(v)
             if col:
                 x_med.append(ei)
                 y_med.append(_norm(float(np.mean(col)), key))
@@ -1095,8 +1115,11 @@ def grafico_calibration(segmentos: list, saida: Path) -> None:
                     ini   = b * chunk
                     fim   = ini + chunk if b < n_bins - 1 else len(segs_ord)
                     bloco = segs_ord[ini:fim]
-                    bin_x.append(float(np.mean([s[met_key]  for s in bloco])))
-                    bin_y.append(float(np.mean([s[dim_key]  for s in bloco])))
+                    met_vals = [s[met_key] for s in bloco if s[met_key] is not None]
+                    dim_vals = [s[dim_key] for s in bloco if s[dim_key] is not None]
+                    if met_vals and dim_vals:
+                        bin_x.append(float(np.mean(met_vals)))
+                        bin_y.append(float(np.mean(dim_vals)))
                 ax.plot(bin_x, bin_y, "o-", color=cor, linewidth=2,
                         markersize=7, label=modelo)
 
@@ -1213,11 +1236,19 @@ def grafico_ranking_agreement(segmentos: list, saida: Path) -> None:
         segs = [s for s in validos
                 if s["video_id"] == vid and s["modelo"] == mod
                 and s.get(key, -1) >= 0]
-        return float(np.mean([s[key] for s in segs])) if segs else 0.0
+        vals = [s[key] for s in segs if s[key] is not None]
+        return float(np.mean(vals)) if vals else 0.0
 
     def _accr_vid(vid: str, mod: str) -> float:
         segs = [s for s in validos if s["video_id"] == vid and s["modelo"] == mod]
-        return float(np.mean([np.mean([s[d] for d in dims_accr]) for s in segs])) if segs else 0.0
+        if not segs:
+            return 0.0
+        means = []
+        for s in segs:
+            vals = [s[d] for d in dims_accr if s[d] is not None]
+            if vals:
+                means.append(np.mean(vals))
+        return float(np.mean(means)) if means else 0.0
 
     n_met  = len(metricas_cfg)
     n_par  = len(pares)
@@ -1271,6 +1302,161 @@ def grafico_ranking_agreement(segmentos: list, saida: Path) -> None:
     plt.close(fig)
     print(f"  ✅ {saida.name}")
 
+def grafico_contradicao(auto: dict, accr: dict, saida: Path) -> None:
+    """
+    Mostra a inversão: SkimCap ganha em CIDEr,
+    GPT-4.1 ganha em ACCR — no mesmo gráfico.
+    """
+    modelos = _modelos_unicos({**auto, **accr})
+
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+    cores = [_CORES[i % len(_CORES)] for i in range(len(modelos))]
+
+    # CIDEr (métricas automáticas)
+    cider_vals = [_media_modelo(auto, mo, "CIDEr") for mo in modelos]
+    bars1 = axes[0].bar(modelos, cider_vals, color=cores, 
+                        edgecolor='white', linewidth=0.8)
+    axes[0].set_title("CIDEr-D\n(Métricas Automáticas)", 
+                    fontsize=12, fontweight='bold')
+    axes[0].set_ylabel("Score")
+    for bar, val in zip(bars1, cider_vals):
+        axes[0].text(bar.get_x() + bar.get_width()/2, 
+                    bar.get_height() + 0.002,
+                    f'{val:.3f}', ha='center', fontsize=10)
+
+    # ACCR geral
+    accr_vals = [_media_modelo(accr, mo, "media_geral") for mo in modelos]
+    bars2 = axes[1].bar(modelos, accr_vals, color=cores,
+                        edgecolor='white', linewidth=0.8)
+    axes[1].set_title("Score ACCR Geral\n(Avaliação Semântica)", 
+                    fontsize=12, fontweight='bold')
+    axes[1].set_ylabel("Score (0–100)")
+    axes[1].set_ylim(0, 105)
+    for bar, val in zip(bars2, accr_vals):
+        axes[1].text(bar.get_x() + bar.get_width()/2,
+                    bar.get_height() + 0.5,
+                    f'{val:.1f}', ha='center', fontsize=10)
+
+    # Seta indicando inversão
+    fig.text(0.5, 0.02,
+            "⟵ SkimCap lidera aqui          GPT-4.1 lidera aqui ⟶",
+            ha='center', fontsize=11, color='#C44E52',
+            fontweight='bold')
+
+    fig.suptitle(
+        "Contradição: Métricas Automáticas vs Avaliação Semântica (ACCR)",
+        fontsize=13, fontweight='bold'
+    )
+    fig.tight_layout(rect=[0, 0.06, 1, 1])
+    fig.savefig(saida, dpi=150, bbox_inches='tight')
+    plt.close(fig)
+    print(f"  ✅ {saida.name}")
+
+def grafico_length_vs_score(segmentos: list, saida: Path) -> None:
+    """
+    Scatter: comprimento da legenda gerada vs CIDEr/ROUGE-L.
+    Mostra que captions longas (LLMs) são penalizadas pelas métricas.
+    """
+    modelos = sorted({s["modelo"] for s in segmentos})
+    validos = [s for s in segmentos 
+            if s.get("rouge_l", -1) >= 0 and s.get("caption")]
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    metricas = [("rouge_l", "ROUGE-L"), ("conciseness", "ACCR Conciseness")]
+
+    for ax_idx, (met_key, met_label) in enumerate(metricas):
+        ax = axes[ax_idx]
+        for idx, modelo in enumerate(modelos):
+            segs_m = [s for s in validos if s["modelo"] == modelo]
+            if not segs_m:
+                continue
+            # Filtrar pares válidos (caption + score não-None)
+            pares = [(len(s["caption"].split()), s[met_key])
+                     for s in segs_m
+                     if s.get(met_key) is not None]
+            if not pares:
+                continue
+            x, y = zip(*pares)
+            x = list(x)
+            y = list(y)
+            cor = _CORES[idx % len(_CORES)]
+            ax.scatter(x, y, alpha=0.45, s=30, color=cor,
+                    label=modelo, edgecolors='none')
+            if len(x) >= 3:
+                coef = np.polyfit(x, y, 1)
+                x_ln = np.linspace(min(x), max(x), 100)
+                ax.plot(x_ln, np.polyval(coef, x_ln), '--',
+                    color=cor, linewidth=2, alpha=0.8)
+        
+        ax.set_xlabel("Comprimento da legenda (palavras)", fontsize=11)
+        ax.set_ylabel(met_label, fontsize=11)
+        ax.set_title(met_label, fontsize=12, fontweight='bold')
+        ax.legend(fontsize=9)
+
+    fig.suptitle(
+        "Comprimento da Legenda vs Score\n"
+        "Métricas automáticas penalizam captions mais longas "
+        "(LLMs); ACCR não penaliza",
+        fontsize=12, fontweight='bold'
+    )
+    fig.tight_layout()
+    fig.savefig(saida, dpi=150, bbox_inches='tight')
+    plt.close(fig)
+    print(f"  ✅ {saida.name}")
+
+
+# def grafico_accr_ia_vs_humano(dados_ia: list, dados_humano: list, 
+#                            saida: Path) -> None:
+#     """
+#     Scatter de scores ACCR-IA vs ACCR-Humano por segmento.
+#     Valida GPT-4.1 como proxy confiável do julgamento humano.
+#     """
+#     dims = ["accuracy", "completeness", "conciseness", "relevance"]
+#     rot  = ["Accuracy", "Completeness", "Conciseness", "Relevance"]
+
+#     fig, axes = plt.subplots(2, 2, figsize=(10, 9))
+#     axes = axes.flatten()
+
+#     for idx, (dim, label) in enumerate(zip(dims, rot)):
+#         ax = axes[idx]
+        
+#         # Pareie os scores IA e humano pelo segment_id
+#         x = [s[dim] for s in dados_ia]    # ACCR-IA
+#         y = [s[dim] for s in dados_humano] # ACCR-Humano
+        
+#         ax.scatter(x, y, alpha=0.6, s=40, color=_CORES[0],
+#                 edgecolors='none')
+        
+#         # Linha de concordância perfeita
+#         ax.plot([0, 100], [0, 100], 'k--', alpha=0.4, 
+#                 linewidth=1.5, label='Concordância perfeita')
+        
+#         # Linha de tendência
+#         if len(x) >= 3 and _SCIPY_OK:
+#             r, p = spearmanr(x, y)
+#             coef = np.polyfit(x, y, 1)
+#             x_ln = np.linspace(min(x), max(x), 100)
+#             ax.plot(x_ln, np.polyval(coef, x_ln), 'r-',
+#                     linewidth=2, alpha=0.8,
+#                     label=f'Tendência (r={r:.2f})')
+        
+#         ax.set_xlabel("ACCR-IA (GPT-4.1)", fontsize=10)
+#         ax.set_ylabel("ACCR-Humano (50 participantes)", fontsize=10)
+#         ax.set_title(label, fontsize=11, fontweight='bold')
+#         ax.set_xlim(0, 105)
+#         ax.set_ylim(0, 105)
+#         ax.legend(fontsize=8)
+
+#     fig.suptitle(
+#         "Correlação ACCR-IA vs ACCR-Humano por Dimensão\n"
+#         "Valida GPT-4.1 como proxy do julgamento humano",
+#         fontsize=13, fontweight='bold'
+#     )
+#     fig.tight_layout()
+#     fig.savefig(saida, dpi=150, bbox_inches='tight')
+#     plt.close(fig)
+#     print(f"  ✅ {saida.name}")
 
 def grafico_hexbin(segmentos: list, saida: Path) -> None:
     """
@@ -1297,6 +1483,11 @@ def grafico_hexbin(segmentos: list, saida: Path) -> None:
 
     for idx, (modelo, ax) in enumerate(zip(modelos, axes)):
         segs_m = [s for s in validos if s["modelo"] == modelo]
+        if not segs_m:
+            ax.set_title(modelo)
+            continue
+        # Filtra None values para evitar problemas com hexbin
+        segs_m = [s for s in segs_m if s["accuracy"] is not None]
         if not segs_m:
             ax.set_title(modelo)
             continue
@@ -1382,15 +1573,47 @@ def main() -> None:
     if auto or accr:
         grafico_rank_stability(auto, accr, args.output_dir / "rank_stability.png")
 
+    # ── Contradições (Auto vs ACCR) ──────────────────────────
+    if auto and accr:
+        try:
+            grafico_contradicao(auto, accr,          args.output_dir / "contradicao.png")
+        except Exception as e:
+            print(f"  ⚠️  contradicao falhou: {e}")
+
     # ── Análise Avançada (Módulo 6) ──────────────────────────
     if segmentos:
-        grafico_correlacao_sig(segmentos,        args.output_dir / "correlacao_sig.png")
-        grafico_bland_altman(segmentos,          args.output_dir / "bland_altman.png")
-        grafico_parallel_coordinates(segmentos,  args.output_dir / "parallel_coordinates.png")
-        grafico_calibration(segmentos,           args.output_dir / "calibration.png")
-        grafico_delta_heatmap(segmentos,         args.output_dir / "delta_heatmap.png")
-        grafico_ranking_agreement(segmentos,     args.output_dir / "ranking_agreement.png")
-        grafico_hexbin(segmentos,                args.output_dir / "hexbin.png")
+        try:
+            grafico_correlacao_sig(segmentos,        args.output_dir / "correlacao_sig.png")
+        except Exception as e:
+            print(f"  ⚠️  correlacao_sig falhou: {e}")
+        try:
+            grafico_bland_altman(segmentos,          args.output_dir / "bland_altman.png")
+        except Exception as e:
+            print(f"  ⚠️  bland_altman falhou: {e}")
+        try:
+            grafico_parallel_coordinates(segmentos,  args.output_dir / "parallel_coordinates.png")
+        except Exception as e:
+            print(f"  ⚠️  parallel_coordinates falhou: {e}")
+        try:
+            grafico_calibration(segmentos,           args.output_dir / "calibration.png")
+        except Exception as e:
+            print(f"  ⚠️  calibration falhou: {e}")
+        try:
+            grafico_delta_heatmap(segmentos,         args.output_dir / "delta_heatmap.png")
+        except Exception as e:
+            print(f"  ⚠️  delta_heatmap falhou: {e}")
+        try:
+            grafico_ranking_agreement(segmentos,     args.output_dir / "ranking_agreement.png")
+        except Exception as e:
+            print(f"  ⚠️  ranking_agreement falhou: {e}")
+        try:
+            grafico_hexbin(segmentos,                args.output_dir / "hexbin.png")
+        except Exception as e:
+            print(f"  ⚠️  hexbin falhou: {e}")
+        try:
+            grafico_length_vs_score(segmentos,       args.output_dir / "length_vs_score.png")
+        except Exception as e:
+            print(f"  ⚠️  length_vs_score falhou: {e}")
 
     print(f"\n✅ Gráficos salvos em: {args.output_dir}/")
 

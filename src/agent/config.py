@@ -27,7 +27,6 @@ GITHUB_ENDPOINT = "https://models.github.ai/inference"
 
 GITHUB_GPT41    = "openai/gpt-4.1"
 GITHUB_LLAMA    = "meta/Llama-4-Maverick-17B-128E-Instruct-FP8"
-GITHUB_PHI      = "microsoft/Phi-4-multimodal-instruct"
 
 # Pastas do projeto
 VIDEOS_DIR = "output/videos"

@@ -196,11 +196,11 @@ class VideoCaptioningAgent:
     def calcular_n_frames(self, t_start: float, t_end: float) -> int:
         """
         1 frame a cada 10 segundos.
-        Mínimo: 3  |  Máximo: 8
+        Mínimo: 1
         """
         duracao = t_end - t_start
-        n = max(3, int(duracao / 10))
-        return min(n, 8)
+        n = max(1, int(duracao / 10))
+        return n
 
     def extrair_frames(self, video_path, t_start, t_end, segment_id):
         """
