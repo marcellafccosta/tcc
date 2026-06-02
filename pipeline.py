@@ -335,7 +335,6 @@ def _tabela_comparativa(args, pred1_path: str, pred2_path: str) -> None:
 
         # — SkimCap vs gerados (auto)
         sc_cider = avg_a.get("SkimCap", {}).get("CIDEr", 0.0)
-        gen_cider = max(_score_auto(m) for m in modelos_gen)
         if sc_cider > max(avg_a[m].get("CIDEr", 0) for m in modelos_gen):
             partes.append(
                 f"O baseline SkimCap dominou as métricas automáticas "
@@ -445,17 +444,13 @@ def main() -> None:
         help="Número máximo de vídeos a gerar legendas (padrão: todos)",
     )
     parser.add_argument(
-        "--workers", "-w", type=int, default=2,
-        help="Segmentos em paralelo na geração (padrão: 2)",
-    )
-    parser.add_argument(
         "--provider", type=str, default=None,
-        choices=["github_gpt41", "github_llama", "github_phi"],
+        choices=["github_gpt41", "github_llama"],
         help="Modelo principal de geração",
     )
     parser.add_argument(
         "--provider2", type=str, default=None,
-        choices=["github_gpt41", "github_llama", "github_phi"],
+        choices=["github_gpt41", "github_llama"],
         help="Segundo modelo de geração",
     )
     parser.add_argument(
@@ -514,7 +509,6 @@ def main() -> None:
         cmd = [
             _PYTHON, str(_SRC / "agent" / "main.py"),
             "--output", f"predictions/{args.pred1}",
-            "--workers", str(args.workers),
         ]
         if args.limit:
             cmd += ["--limit", str(args.limit)]
@@ -541,7 +535,9 @@ def main() -> None:
     # ══ PASSO 2: AVALIAÇÃO ACCR ═══════════════════════════════════
     if not args.skip_accr:
         _passo(2, "AVALIAÇÃO ACCR (LLM como avaliador)")
-
+        if not Path(pred2_path).exists():
+            print(f"  ⚠ Arquivo do modelo 2 não encontrado: {pred2_path}")
+            print(f"    Dica: use --pred2 para especificar o nome correto do arquivo")
         cmd = [
             _PYTHON, str(_SRC / "evaluation" / "llm_eval.py"),
             "--predictions", pred1_path,
@@ -576,7 +572,7 @@ def main() -> None:
         if not args.no_skimcap:
             cmd += ["--skimcap", _SKIMCAP]
 
-        ok = _rodar(cmd, "Métricas automáticas")
+        _rodar(cmd, "Métricas automáticas")
     else:
         _passo(3, "MÉTRICAS AUTOMÁTICAS — pulada (--skip-auto)")
 

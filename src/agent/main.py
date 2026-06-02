@@ -14,7 +14,7 @@ URL → Baixa → Segmenta → Extrai frames → GPT-4 → Legenda → JSON
 
 NOTA:
 Este backend NÃO faz avaliação.
-Para avaliar, use avaliar_legendas.py
+Para avaliar, use llm_eval.py ou auto_metrics.py
 """
 
 import argparse
@@ -25,7 +25,6 @@ import re
 import subprocess
 import shutil
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 import sys
@@ -49,10 +48,8 @@ from token_manager import GerenciadorTokens
 class VideoCaptioningAgent:
     """Backend para geração de legendas de vídeos"""
 
-    def __init__(self, provider: str = None, max_workers: int = 2):
+    def __init__(self, provider: str = None):
         self.provider = provider or config.PROVIDER
-        # Número de segmentos processados em paralelo (limitado pela cota de API)
-        self.max_workers = max_workers
 
         # Valida FFmpeg antes de qualquer processamento
         if not shutil.which("ffmpeg"):
@@ -91,7 +88,6 @@ class VideoCaptioningAgent:
         return {
             "github_gpt41": config.GITHUB_GPT41,
             "github_llama": config.GITHUB_LLAMA,
-            "github_phi":   config.GITHUB_PHI,
         }.get(self.provider, config.GITHUB_GPT41)
 
     def _criar_diretorios(self):
@@ -205,14 +201,14 @@ class VideoCaptioningAgent:
     def extrair_frames(self, video_path, t_start, t_end, segment_id):
         """
         Extrai N frames espaçados uniformemente no segmento.
-        N é proporcional à duração (1 frame/10s, mín 3, máx 8).
+        N é proporcional à duração (1 frame/10s, mínimo 1).
         """
         try:
             segment_dir = os.path.join(config.FRAMES_DIR, f"seg_{segment_id}")
             os.makedirs(segment_dir, exist_ok=True)
 
             n_frames = self.calcular_n_frames(t_start, t_end)
-            t_end_safe = t_end - 0.5
+            t_end_safe = max(t_start + 0.1, t_end - 0.5)
 
             if n_frames == 1:
                 tempos = [(t_start + t_end_safe) / 2]
@@ -255,8 +251,14 @@ class VideoCaptioningAgent:
     # Módulo 3: Captioning
     # ─────────────────────────────────────────────────────────────
 
-    def gerar_legenda(self, frames) -> str | None:
-        """Gera legenda usando GitHub Models, tentando todos os tokens disponíveis."""
+    def gerar_legenda(self, frames, context: list[str] | None = None) -> str | None:
+        """Gera legenda usando GitHub Models, tentando todos os tokens disponíveis.
+
+        Args:
+            frames: Caminhos para os frames do segmento atual.
+            context: Legendas dos segmentos anteriores do mesmo vídeo,
+                     usadas para gerar texto coeso em parágrafo.
+        """
         if not frames:
             return None
         # Valida frames antes de chamar a API
@@ -267,12 +269,15 @@ class VideoCaptioningAgent:
         if not self._github_disponivel():
             print("✗ Todos os tokens GitHub esgotaram ou falharam")
             return None
-        return self._gerar_legenda_github(frames_validos)
+        return self._gerar_legenda_github(frames_validos, context=context)
 
-    def _gerar_legenda_github(self, frames) -> str | None:
+    def _gerar_legenda_github(self, frames, context: list[str] | None = None) -> str | None:
         """
         Gera legenda usando GitHub Models (Azure SDK).
         Trata rate limit por minuto e por dia via GerenciadorTokens.
+
+        Quando `context` é fornecido, injeta as legendas dos segmentos anteriores
+        na mensagem para que o modelo gere texto coeso (parágrafo coerente).
         """
         if not frames:
             return None
@@ -281,6 +286,17 @@ class VideoCaptioningAgent:
         rotulos = self._rotulos_temporais(n)
 
         content = [TextContentItem(text=config.CAPTION_PROMPT)]
+
+        # Injeta contexto dos segmentos anteriores para geração coesa
+        if context:
+            ctx_text = (
+                "[CONTEXT — captions from previous segments of this video]\n"
+                + " ".join(c.strip() for c in context if c)
+                + "\n[/CONTEXT]\n"
+                + "Continue the paragraph naturally from the context above."
+            )
+            content.append(TextContentItem(text=ctx_text))
+
         for i, caminho in enumerate(frames):
             content.append(TextContentItem(text=f"[Frame {i + 1}/{n} — {rotulos[i]}]"))
             content.append(
@@ -347,8 +363,19 @@ class VideoCaptioningAgent:
     # Módulo 4: Persistência
     # ─────────────────────────────────────────────────────────────
 
-    def processar_segmento(self, video_path, t_start, t_end, segment_id):
-        """Processa um segmento: extrai frames e gera legenda."""
+    def processar_segmento(
+        self,
+        video_path,
+        t_start,
+        t_end,
+        segment_id,
+        context: list[str] | None = None,
+    ):
+        """Processa um segmento: extrai frames e gera legenda.
+
+        Args:
+            context: Legendas dos segmentos anteriores para geração coesa.
+        """
         print(f"  Segmento {segment_id}: [{t_start:.1f}s - {t_end:.1f}s]")
 
         frames = self.extrair_frames(video_path, t_start, t_end, segment_id)
@@ -361,7 +388,7 @@ class VideoCaptioningAgent:
                 "error": "Falha ao extrair frames",
             }
 
-        legenda = self.gerar_legenda(frames)
+        legenda = self.gerar_legenda(frames, context=context)
 
         if legenda:
             print(f"  ✓ Legenda: {legenda[:80]}...")
@@ -386,29 +413,48 @@ class VideoCaptioningAgent:
         print(f"\n[2/4] Extraindo frames de {len(segmentos)} segmentos")
         print(f"[3/4] Gerando legendas — provider: {self.provider}")
 
-        # Processa segmentos com ThreadPoolExecutor para paralelismo limitado.
-        # max_workers=2 respeita ~10 req/min do GitHub sem risco de colisão.
-        resultados_map: dict = {}
-        with ThreadPoolExecutor(max_workers=self.max_workers) as ex:
-            futuros = {
-                ex.submit(self.processar_segmento, video_path, t_start, t_end, i): i
-                for i, (t_start, t_end) in enumerate(segmentos)
-            }
-            for futuro in as_completed(futuros):
-                i = futuros[futuro]
-                try:
-                    resultados_map[i] = futuro.result()
-                except Exception as e:
-                    print(f"✗ Erro no segmento {i}: {e}")
-                    resultados_map[i] = {
-                        "segment_id": i,
-                        "timestamps": list(segmentos[i]),
+        # Segmentos são processados SEQUENCIALMENTE para que cada legenda receba
+        # as legendas anteriores como contexto, gerando um parágrafo coerente.
+        resultados: list = []
+        legendas_anteriores: list[str] = []
+        for i, (t_start, t_end) in enumerate(segmentos):
+            try:
+                resultado = self.processar_segmento(
+                    video_path,
+                    t_start,
+                    t_end,
+                    i,
+                    context=legendas_anteriores if legendas_anteriores else None,
+                )
+            except Exception as e:
+                print(f"✗ Erro no segmento {i}: {e}")
+                resultado = {
+                    "segment_id": i,
+                    "timestamps": list(segmentos[i]),
+                    "caption": None,
+                    "frames": None,
+                    "error": str(e),
+                }
+            resultados.append(resultado)
+            if resultado.get("caption"):
+                legendas_anteriores.append(resultado["caption"])
+            # Se tokens esgotados após falha, abortar segmentos restantes do vídeo
+            if not resultado.get("caption") and not self._github_disponivel():
+                print(f"\u2717 Tokens esgotados — abortando segmentos restantes do vídeo")
+                for j in range(i + 1, len(segmentos)):
+                    t_s, t_e = segmentos[j]
+                    resultados.append({
+                        "segment_id": j,
+                        "timestamps": [t_s, t_e],
                         "caption": None,
                         "frames": None,
-                        "error": str(e),
-                    }
+                        "error": "Tokens esgotados",
+                    })
+                break
+            # Rate limit: 10 req/min para GPT-4.1 → 6.5s entre chamadas
+            if i < len(segmentos) - 1:
+                time.sleep(6.5)
 
-        resultados = [resultados_map[i] for i in sorted(resultados_map)]
         print("\n[4/4] Processamento concluído!")
 
         return {
@@ -462,7 +508,6 @@ def processar_dataset(
     gt_json=str(Path(__file__).parent / "../../data/ground_truth/anet_entities_test_1.json"),
     output_file="predictions/predictions_gpt.json",
     limite=None,
-    max_workers=2,
     provider2=None,
     output_file2=None,
     retry_nulls=False,
@@ -516,7 +561,7 @@ def processar_dataset(
         ja_processados = set()
 
     # ── Agente 1 (modelo principal) ───────────────────────────────
-    agente1 = VideoCaptioningAgent(max_workers=max_workers)
+    agente1 = VideoCaptioningAgent()
 
     # ── Agente 2 (modelo de comparação, opcional) ─────────────────
     agente2 = None
@@ -525,7 +570,7 @@ def processar_dataset(
     output_path2: Path | None = None
 
     if provider2:
-        agente2 = VideoCaptioningAgent(provider=provider2, max_workers=1)
+        agente2 = VideoCaptioningAgent(provider=provider2)
         nome2 = output_file2 or f"predictions/predictions_{provider2.replace('github_', '')}.json"
         output_path2 = Path(config.OUTPUT_DIR) / nome2
         output_path2.parent.mkdir(parents=True, exist_ok=True)
@@ -533,6 +578,21 @@ def processar_dataset(
             with open(output_path2, "r") as f:
                 saida2 = json.load(f)
             ja_processados2 = {v["video_id"] for v in saida2.get("videos", [])}
+            if retry_nulls:
+                com_null2 = {
+                    v["video_id"]
+                    for v in saida2.get("videos", [])
+                    if any(s.get("caption") is None for s in v.get("segments", []))
+                }
+                if com_null2:
+                    print(f"↩ retry-nulls (modelo 2): re-processando {len(com_null2)} vídeo(s) com caption null: {com_null2}")
+                    saida2["videos"] = [v for v in saida2["videos"] if v["video_id"] not in com_null2]
+                    ja_processados2 -= com_null2
+                    tmp2 = output_path2.with_suffix(".json.tmp")
+                    tmp2.write_text(json.dumps(saida2, ensure_ascii=False, indent=2), encoding="utf-8")
+                    tmp2.replace(output_path2)
+                else:
+                    print("↩ retry-nulls (modelo 2): nenhum caption null encontrado.")
             print(f"↩ Modelo 2: {len(ja_processados2)} vídeos já processados.")
         else:
             saida2 = {"videos": []}
@@ -544,6 +604,8 @@ def processar_dataset(
         vid
         for vid in ids_disponiveis
         if vid in url_map and vid in gt_data and vid not in ja_processados
+        # Premissa: os IDs de vídeo são os mesmos em anet_entities_test_1 e test_2.
+        # Se diferente, videós presentes apenas em test_2 não receberão legenda.
     ]
 
     if limite:
@@ -590,14 +652,21 @@ def processar_dataset(
         if agente2 and saida2 is not None and video_id not in ja_processados2:
             print(f"\n  [Modelo 2: {agente2.provider}] Gerando legendas com frames já extraídos...")
             segmentos2 = []
+            legendas_ctx2: list[str] = []
             for r in resultado["results"]:
                 frames = r.get("frames") or []
-                legenda2 = agente2.gerar_legenda(frames) if frames else None
+                legenda2 = (
+                    agente2.gerar_legenda(frames, context=legendas_ctx2 if legendas_ctx2 else None)
+                    if frames
+                    else None
+                )
                 segmentos2.append({
                     "segment_id": r["segment_id"],
                     "timestamps": r["timestamps"],
                     "caption": legenda2,
                 })
+                if legenda2:
+                    legendas_ctx2.append(legenda2)
                 if len(segmentos2) < len(resultado["results"]):
                     time.sleep(6.5)  # respeita rate limit entre segmentos do modelo 2
 
@@ -636,21 +705,17 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--provider", "-m", type=str, default=None,
-        choices=["github_gpt41", "github_llama", "github_phi"],
+        choices=["github_gpt41", "github_llama"],
         help=f"Modelo principal (padrão: {config.PROVIDER})",
     )
     parser.add_argument(
         "--provider2", "-m2", type=str, default=None,
-        choices=["github_gpt41", "github_llama", "github_phi"],
+        choices=["github_gpt41", "github_llama"],
         help=f"Segundo modelo de geração para comparação (padrão: {config.PROVIDER_2})",
     )
     parser.add_argument(
         "--output2", type=str, default=None,
         help="Arquivo de saída do segundo modelo em output/ (padrão: predictions_<provider2>.json)",
-    )
-    parser.add_argument(
-        "--workers", "-w", type=int, default=2,
-        help="Número de segmentos em paralelo (padrão: 2)",
     )
     parser.add_argument(
         "--disponiveis", type=str,
@@ -689,7 +754,6 @@ if __name__ == "__main__":
         gt_json=_args.gt,
         output_file=_args.output,
         limite=_args.limit,
-        max_workers=_args.workers,
         provider2=_args.provider2 or config.PROVIDER_2,
         output_file2=_args.output2,
         retry_nulls=_args.retry_nulls,

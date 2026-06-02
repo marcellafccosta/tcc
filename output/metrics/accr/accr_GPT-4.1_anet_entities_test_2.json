@@ -1,23 +1,23 @@
 {
   "accuracy": {
-    "media": 56.67,
+    "media": 50.37,
     "min": 0,
     "max": 98
   },
   "completeness": {
-    "media": 50.27,
+    "media": 44.67,
     "min": 0,
     "max": 98
   },
   "conciseness": {
-    "media": 82.8,
+    "media": 80.17,
     "min": 30,
     "max": 100
   },
   "relevance": {
-    "media": 58.33,
+    "media": 55.83,
     "min": 0,
     "max": 100
   },
-  "media_geral": 62.02
+  "media_geral": 57.76
 }

@@ -206,11 +206,12 @@ Determinar:
 
 ### 5.1 Dataset
 
-**Fonte**: [ActivityNet Entities](http://activity-net.org/challenges/2017/event_localization.html)
+**Fonte**: ActivityNet Captions
 
 | Aspecto | Descrição |
 |---------|-----------|
-| **Vídeos** | ~400 vídeos de YouTube (atividades humanas variadas) |
+| **Vídeos** | ~400 vídeos de YouTube (atividades humanas variadas) — **10 processados** |
+| **Duração filtrada** | 50s a 120s por vídeo |
 | **Segmentos** | Temporal intervals com timestamps |
 | **Anotações** | Descrições em linguagem natural (múltiplas referências por segmento) |
 | **Ground Truth** | `data/ground_truth/anet_entities_test_1.json` e `test_2.json` |
@@ -218,9 +219,9 @@ Determinar:
 | **Baseline** | SkimCap predictions (`data/baselines/greedy_pred_test.json`) |
 
 **Tamanho do Dataset Processado**:
-- Test_1: ~100 vídeos com múltiplos segmentos
-- Test_2: ~100 vídeos com múltiplos segmentos
-- Total: ~400-500 segmentos por split
+- **10 vídeos** selecionados aleatoriamente do AE-TEST (50s–120s de duração)
+- Cada vídeo possui múltiplos segmentos anotados
+- Frames: 1 frame a cada 10 segundos por segmento (mínimo 1)
 
 ### 5.2 Modelos
 
@@ -228,15 +229,15 @@ Determinar:
 
 | Modelo | Provider | Acesso | Limite | Host | Detalhes |
 |--------|----------|--------|--------|------|----------|
-| **GPT-4.1 Vision** | Azure OpenAI | Token API | 50 req/dia × N tokens | Azure | Multimodal, SOTA em visão |
-| **LLaMA-4 Vision** | GitHub Models | Token GitHub | 50 req/dia × N tokens | GitHub | Open-source alternative, menor custo |
+| **GPT-4.1 Vision** | GitHub Models | Token GitHub | 50 req/dia × N tokens | GitHub (`openai/gpt-4.1`) | Multimodal, SOTA em visão |
+| **LLaMA-4 Maverick** | GitHub Models | Token GitHub | 50 req/dia × N tokens | GitHub (`meta/Llama-4-Maverick-17B-128E-Instruct-FP8`) | Open-source alternative, menor custo |
 | **SkimCap** (Baseline) | -specialized- | Pre-computed | N/A | - | Modelo especializado em video captioning |
 
 #### 5.2.2 Modelo Avaliador
 
 | Modelo | Função | Provider |
 |--------|--------|----------|
-| **GPT-4.1** | ACCR Scorer | Azure OpenAI |
+| **GPT-4.1** (`openai/gpt-4.1`) | ACCR Scorer | GitHub Models |
 | Avalia cada legenda em 4 dimensões (accuracy, completeness, conciseness, relevance) |
 
 ### 5.3 Arquitetura do Sistema
@@ -286,21 +287,22 @@ Arquivo: `src/agent/main.py`
 2. **Segmentação**: Dividir em chunks usando timestamps do ground truth
 3. **Extração de Frames**: 
    - Para cada segmento, extrair **1 frame a cada 10 segundos**
-   - Mínimo de 3 frames, máximo de 8 por segmento
+   - Mínimo de 1 frame por segmento (sem máximo fixo)
    - Frames distribuídos uniformemente no intervalo temporal
    - Converter para base64 para envio à API multimodal
-   - *Estratégia*: Esta frequência balanceia cobertura temporal vs. custo de API (reduz tokens consumidos)
+   - *Estratégia*: Esta frequência balanceia cobertura temporal vs. custo de API
 4. **Geração**:
-   - Invocar GPT-4 Vision (Azure) e LLaMA-4 (GitHub Models)
+   - Invocar GPT-4.1 e LLaMA-4 Maverick via GitHub Models (`https://models.github.ai/inference`)
    - Usar prompt otimizado (`prompts/caption.txt`)
-   - Prompt enfatiza: WHO (sujeito), WHAT (ação), WHERE (contexto)
+   - Prompt orienta geração de **parágrafo coeso**: cada segmento recebe as legendas anteriores como contexto (`[CONTEXT]`) para produzir frases de continuidade coerentes
+   - Parâmetros: `max_tokens=300`, `temperature=0.3`
 5. **Persistência**: Salvar em JSON (`output/predictions/predictions_{modelo}.json`)
 
 **Gerenciamento de Rate Limits**:
-- Gerenciador de tokens automático (`token_manager.py`)
-- Rotação entre 7 tokens GitHub/Azure
-- Retry com backoff exponencial
-- Limite diário: 50 requests por token
+- Classe centralizada `GerenciadorTokens` (compartilhada entre geração e avaliação)
+- Rotação automática entre até 7 tokens GitHub ao receber HTTP 429
+- Backoff exponencial em erros 500/502/503
+- Limite diário: 50 requests por token (350 total com 7 tokens)
 
 #### **FASE 3: Avaliação Automática**
 Arquivo: `src/evaluation/auto_metrics.py`
@@ -353,31 +355,47 @@ Arquivo: `pipeline.py` (função `_tabela_comparativa`)
 #### **Prompt de Geração** (`src/agent/prompts/caption.txt`)
 
 ```
-You will see a sequence of frames from the same video segment, from start to end.
-Generate a single caption in English that describes what is happening in this segment.
+You will see a sequence of frames from one segment of a longer video.
+
+Your task is to write ONE caption for this segment that, together with captions from the other
+segments, forms a single COHERENT PARAGRAPH describing the entire video.
 
 STEP 1 — Before writing, observe across all frames:
 - What is MOVING or CHANGING between frames? That is the main action.
-- Who is the PRIMARY subject (person/animal)?
-- What specific action are they performing?
-- If the action changes, describe the sequence
+- Who is the PRIMARY subject (the person/animal the camera follows)?
+- What specific action are they performing? (jump, run, kick, hold, throw...)
+- If the action changes across frames, describe the full sequence.
+- Background elements (logos, audience, decorations) are NOT the main subject.
 
-STEP 2 — Write a caption that answers:
-1. WHO is in the scene? (be specific: man, woman, boy, girl, athlete...)
-2. WHAT are they doing? (the main action — be precise)
-3. WHERE? (only if clearly relevant)
+STEP 2 — Write a caption that fits naturally into a paragraph:
+- If CONTEXT from previous segments is provided below: continue the narrative using
+  transitional language (e.g. "He then...", "She continues to...", "They next...").
+  DO NOT repeat the subject introduction or scene already established in the context.
+  Use pronouns and connective phrases to maintain coherence.
+- If NO context is provided (first segment): introduce the subject and main action
+  clearly (WHO + WHAT + WHERE if relevant).
+
+Your caption will be evaluated as part of a concatenated paragraph against these metrics:
+• CIDEr-D: Semantic alignment via TF-IDF → Accuracy + Relevance
+• BLEU-4: Precision of 4-word sequences → Accuracy
+• ROUGE-L: Coverage via longest common subsequence → Completeness
+• METEOR: Alignment with synonym support → Accuracy + Completeness
+• R@4: 4-gram repetition between segments → Conciseness (lower is better)
 
 Your caption MUST satisfy the ACCR framework:
-- Accuracy: factual and precise
-- Completeness: cover main action and subject
-- Conciseness: clear and efficient (2-3 sentences max)
-- Relevance: focus on primary action, not background
+- Accuracy: factual and precise — describe only what is visible
+- Completeness: cover the main action and the subject
+- Conciseness: 1-2 sentences only
+- Relevance: focus on the primary action of THIS segment, not background scenery
 
 RULES:
+- Write 1-2 sentences maximum
+- Use transitional phrases when continuing from context ("then", "next", "he continues", etc.)
+- DO NOT repeat subject or scene information already stated in the context
+- DO NOT prioritize background elements (logos, banners, decorations, audience)
 - DO NOT invent details you are not certain about
-- Use at most 2-3 sentences
 - DO NOT use markdown formatting
-- Write ONE single paragraph
+- DO NOT include frame labels (e.g. "[Frame 1/3]") in your response
 
 Caption:
 ```
@@ -385,23 +403,49 @@ Caption:
 #### **Prompt ACCR** (`src/evaluation/prompts/accr.txt`)
 
 ```
-You will be given a caption generated for a short video segment. 
-Your task is to rate the generated caption based on its accuracy 
-in capturing the essential content as described in the reference captions.
+You will be given a caption generated for a short video segment. Your task is to rate the
+generated caption based on its accuracy in capturing the essential content of the video as
+described in the reference captions.
+
+Evaluation Criteria:
+Score is from 0 to 100 — The generated caption should accurately reflect the content in the
+reference captions and appropriately describe the key actions or events visible in the video.
+Annotators should penalize captions that include irrelevant details or omit significant elements
+indicated in the reference captions and the video.
 
 Evaluation Dimensions:
-α Accuracy: Does it correctly describe entities and actions without errors?
-β Completeness: Does it cover all significant events?
-ψ Conciseness: Is it clear and succinct?
-δ Relevance: Is it pertinent to the video content?
+Accuracy: Does the caption correctly describe the entities and actions shown in the video
+  without errors or hallucinations?
+Completeness: Does the caption cover all significant events and aspects of the video, including
+  dynamic actions and possible scene transitions?
+Conciseness: Is the caption clear and succinct, avoiding unnecessary details and repetition?
+Relevance: Is the caption pertinent to the video content, without including irrelevant
+  information or questions?
+
+Evaluation Steps:
+1. Examine the provided reference captions carefully.
+   1) Read the full reference captions that describe the overall video content or specific actions.
+   2) Review each reference caption thoroughly to understand what aspects of the video they highlight.
+2. Read the generated caption.
+   1) Carefully read the generated caption that needs to be evaluated.
+3. Compare the generated caption with the reference captions and assess how well it captures the
+   essence of the video.
+4. Evaluate how accurately and completely the generated caption describes the events and entities.
+5. Check for the inclusion of irrelevant details or the omission of significant elements.
+6. Assign an integer score from 0 to 100 for each dimension.
+
+Reference captions: {reference}
+Generated caption: {caption}
 
 Response Format:
+You should first give detailed reason for your scores, then end with one sentence per score:
 ..... The Accuracy score is α{{accuracy score}}α.
 ..... The Completeness score is β{{completeness score}}β.
 ..... The Conciseness score is ψ{{conciseness score}}ψ.
 ..... The Relevance score is δ{{relevance score}}δ.
 
-Note: score must be an integer 0-100 wrapped in the Greek letter.
+Note: the score must be an integer from 0 to 100 wrapped in the corresponding Greek letter.
+Wrap Accuracy score in α | Completeness in β | Conciseness in ψ | Relevance in δ
 ```
 
 ### 5.6 Formato de Dados
@@ -469,8 +513,8 @@ Note: score must be an integer 0-100 wrapped in the Greek letter.
 | **Download de Vídeos** | `yt-dlp` ≥2024.0.0 | Extrai vídeos do YouTube |
 | **Segmentação** | FFmpeg | Corta vídeos em segmentos com timecodes |
 | **Frames** | OpenCV (via FFmpeg) | Extrai frames em base64 |
-| **API Multimodal** | `azure-ai-inference` | Acessa GPT-4 Vision |
-| **LLM Open-Source** | GitHub Models API | Acessa LLaMA-4 (via HTTPS) |
+| **API Multimodal** | `azure-ai-inference` + GitHub Models | Acessa GPT-4.1 e LLaMA-4 Maverick via `https://models.github.ai/inference` |
+| **LLM Open-Source** | GitHub Models API | Acessa LLaMA-4 Maverick (`meta/Llama-4-Maverick-17B-128E-Instruct-FP8`) |
 | **Processamento NLP** | `nltk` ≥3.8.0 | BLEU, METEOR, ROUGE-L, CIDEr-D |
 | **Visualização** | `matplotlib` ≥3.7.0 | Gera plots de comparação |
 | **JSON** | `json` (stdlib) | Serialização de dados |
@@ -481,18 +525,13 @@ Note: score must be an integer 0-100 wrapped in the Greek letter.
 
 **Variáveis de Ambiente** (`.env`):
 ```bash
-# Azure OpenAI (obrigatório)
-AZURE_API_KEY=...
-AZURE_ENDPOINT=https://models.inference.ai.azure.com
-AZURE_DEPLOYMENT=gpt-4-vision
-
-# GitHub Models (obrigatório)
-GITHUB_TOKEN=ghp_...  # Token 1 (obrigatório)
-GITHUB_TOKEN_2=ghp_... # Token 2-7 (opcionais, para rate limit)
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
+# GitHub Models — todos os modelos (geração + avaliação)
+GITHUB_TOKEN=ghp_...    # Token 1 (obrigatório)
+GITHUB_TOKEN_2=ghp_...  # Token 2-7 (opcionais, para rate limit)
+# GITHUB_ENDPOINT = https://models.github.ai/inference  (hardcoded em config.py)
 
 # Configuração
-LLM_TIMEOUT=300  # segundos
+LLM_TIMEOUT=60  # segundos (default)
 ```
 
 **Dependências** (requirements.txt):
@@ -739,8 +778,8 @@ Este trabalho APLICA o framework ao ActivityNet Captions
 
 ### 6.1 Resumo Executivo
 
-Foram processados ~200 segmentos de vídeo do ActivityNet Entities, gerando:
-- **Predições**: 2 modelos LLM (GPT-4.1, LLaMA-4)
+Foram processados **10 vídeos** (50s–120s) do ActivityNet Entities, com 1 frame a cada 10 segundos por segmento, gerando:
+- **Predições**: 2 modelos LLM (GPT-4.1, LLaMA-4 Maverick)
 - **Métricas Automáticas**: 5 métricas × 3 modelos × 2 splits = 30 arquivos
 - **Avaliação ACCR**: 4 dimensões × 3 modelos × 2 splits = 6 relatórios
 

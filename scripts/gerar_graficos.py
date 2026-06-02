@@ -54,8 +54,11 @@ except ImportError:
 try:
     import nltk
     from nltk.translate.meteor_score import meteor_score as _meteor_fn
-    nltk.download("wordnet", quiet=True)
-    nltk.download("omw-1.4", quiet=True)
+    try:
+        nltk.download("wordnet", quiet=True)
+        nltk.download("omw-1.4", quiet=True)
+    except Exception as e:
+        print(f"⚠️  nltk download falhou (possível erro de rede): {e}. METEOR pode estar indisponível.")
     _NLTK_OK = True
 except ImportError:
     _NLTK_OK = False
@@ -86,8 +89,6 @@ _MODELO_CANON = {
     "gpt-4.1": "GPT-4.1",
     "predictions_gpt": "GPT-4.1",
     "predictions_llama": "LLaMA",
-    "modelo1": "GPT-4.1",
-    "modelo2": "LLaMA",
 }
 
 def _canon(nome: str) -> str:
@@ -369,7 +370,8 @@ def grafico_barras_gt(auto: dict, saida: Path) -> None:
         return
 
     n_met = len(metricas_cfg)
-    fig, axes = plt.subplots(1, n_met, figsize=(3.5 * n_met, 5), sharey=False)
+    fig, axes = plt.subplots(1, n_met, figsize=(3.5 * n_met, 5), sharey=False, squeeze=False)
+    axes = axes[0]
 
     for ax_idx, (key, label) in enumerate(metricas_cfg):
         ax = axes[ax_idx]
@@ -469,7 +471,8 @@ def grafico_barras_accr_gt(accr: dict, saida: Path) -> None:
         return
 
     n_dim = len(dims_cfg)
-    fig, axes = plt.subplots(1, n_dim, figsize=(3.5 * n_dim, 5), sharey=False)
+    fig, axes = plt.subplots(1, n_dim, figsize=(3.5 * n_dim, 5), sharey=False, squeeze=False)
+    axes = axes[0]
 
     for ax_idx, (key, label) in enumerate(dims_cfg):
         ax = axes[ax_idx]
@@ -1405,58 +1408,6 @@ def grafico_length_vs_score(segmentos: list, saida: Path) -> None:
     plt.close(fig)
     print(f"  ✅ {saida.name}")
 
-
-# def grafico_accr_ia_vs_humano(dados_ia: list, dados_humano: list, 
-#                            saida: Path) -> None:
-#     """
-#     Scatter de scores ACCR-IA vs ACCR-Humano por segmento.
-#     Valida GPT-4.1 como proxy confiável do julgamento humano.
-#     """
-#     dims = ["accuracy", "completeness", "conciseness", "relevance"]
-#     rot  = ["Accuracy", "Completeness", "Conciseness", "Relevance"]
-
-#     fig, axes = plt.subplots(2, 2, figsize=(10, 9))
-#     axes = axes.flatten()
-
-#     for idx, (dim, label) in enumerate(zip(dims, rot)):
-#         ax = axes[idx]
-        
-#         # Pareie os scores IA e humano pelo segment_id
-#         x = [s[dim] for s in dados_ia]    # ACCR-IA
-#         y = [s[dim] for s in dados_humano] # ACCR-Humano
-        
-#         ax.scatter(x, y, alpha=0.6, s=40, color=_CORES[0],
-#                 edgecolors='none')
-        
-#         # Linha de concordância perfeita
-#         ax.plot([0, 100], [0, 100], 'k--', alpha=0.4, 
-#                 linewidth=1.5, label='Concordância perfeita')
-        
-#         # Linha de tendência
-#         if len(x) >= 3 and _SCIPY_OK:
-#             r, p = spearmanr(x, y)
-#             coef = np.polyfit(x, y, 1)
-#             x_ln = np.linspace(min(x), max(x), 100)
-#             ax.plot(x_ln, np.polyval(coef, x_ln), 'r-',
-#                     linewidth=2, alpha=0.8,
-#                     label=f'Tendência (r={r:.2f})')
-        
-#         ax.set_xlabel("ACCR-IA (GPT-4.1)", fontsize=10)
-#         ax.set_ylabel("ACCR-Humano (50 participantes)", fontsize=10)
-#         ax.set_title(label, fontsize=11, fontweight='bold')
-#         ax.set_xlim(0, 105)
-#         ax.set_ylim(0, 105)
-#         ax.legend(fontsize=8)
-
-#     fig.suptitle(
-#         "Correlação ACCR-IA vs ACCR-Humano por Dimensão\n"
-#         "Valida GPT-4.1 como proxy do julgamento humano",
-#         fontsize=13, fontweight='bold'
-#     )
-#     fig.tight_layout()
-#     fig.savefig(saida, dpi=150, bbox_inches='tight')
-#     plt.close(fig)
-#     print(f"  ✅ {saida.name}")
 
 def grafico_hexbin(segmentos: list, saida: Path) -> None:
     """

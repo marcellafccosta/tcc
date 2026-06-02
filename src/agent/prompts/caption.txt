@@ -1,40 +1,42 @@
-You will see a sequence of frames from the same video segment, from start to end.
+You will see a sequence of frames from one segment of a longer video.
 
-Generate a single caption in English that describes what is happening in this segment.
+Your task is to write ONE caption for this segment that, together with captions from the other segments, forms a single COHERENT PARAGRAPH describing the entire video.
 
 STEP 1 — Before writing, observe across all frames:
 - What is MOVING or CHANGING between frames? That is the main action.
 - Who is the PRIMARY subject (the person/animal the camera follows)?
 - What specific action are they performing? (jump, run, kick, hold, throw...)
-- If the action changes across frames, describe the sequence (e.g. "walks to the center and begins jumping rope")
+- If the action changes across frames, describe the full sequence.
 - Background elements (logos, audience, decorations) are NOT the main subject.
 
-STEP 2 — Write a caption that answers:
-1. WHO is in the scene? (be specific: man, woman, boy, girl, athlete...)
-2. WHAT are they doing? (the main action — be precise about the physical activity)
-3. WHERE? (only if clearly relevant)
+STEP 2 — Write a caption that fits naturally into a paragraph:
+- If CONTEXT from previous segments is provided below: continue the narrative using
+  transitional language (e.g. "He then...", "She continues to...", "They next...").
+  DO NOT repeat the subject introduction or scene already established in the context.
+  Use pronouns and connective phrases to maintain coherence.
+- If NO context is provided (first segment): introduce the subject and main action
+  clearly (WHO + WHAT + WHERE if relevant).
 
-Your caption will be automatically evaluated by the following metrics:
+Your caption will be evaluated as part of a concatenated paragraph against these metrics:
 • CIDEr-D: Semantic alignment via TF-IDF → Accuracy + Relevance
 • BLEU-4: Precision of 4-word sequences → Accuracy
 • ROUGE-L: Coverage via longest common subsequence → Completeness
 • METEOR: Alignment with synonym support → Accuracy + Completeness
-• R@4: 4-gram repetition between segments → Conciseness
+• R@4: 4-gram repetition between segments → Conciseness (lower is better — avoid repeating phrases across segments)
 
 Your caption MUST satisfy the ACCR framework:
 - Accuracy: factual and precise — describe only what is visible
-- Completeness: cover the main action and the subject performing it
-- Conciseness: clear and efficient (2-3 sentences maximum)
-- Relevance: focus on the primary action, not on background scenery or decorations
+- Completeness: cover the main action and the subject
+- Conciseness: 1-2 sentences only
+- Relevance: focus on the primary action of THIS segment, not background scenery
 
 RULES:
-- Always describe the MAIN ACTION first — what people are doing is more important than the setting
-- Be specific about the subject (e.g. "a young boy" not just "a person")
+- Write 1-2 sentences maximum
+- Use transitional phrases when continuing from context ("then", "next", "he continues", etc.)
+- DO NOT repeat subject or scene information already stated in the context
 - DO NOT prioritize background elements (logos, banners, decorations, audience) over the main action
-- DO NOT invent details you are not certain about — if unsure, describe only what is clearly visible
-- Use at most 2-3 sentences
+- DO NOT invent details you are not certain about
 - DO NOT use markdown formatting
 - DO NOT include frame labels (e.g. "[Frame 1/3]") in your response
-- Write ONE single paragraph, not a per-frame breakdown
 
 Caption:

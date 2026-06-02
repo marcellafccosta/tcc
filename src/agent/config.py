@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ─── Provider ────────────────────────────────────────────────────
-# Opções: "github_gpt41" | "github_llama" | "github_phi"
+# Opções: "github_gpt41" | "github_llama"
 PROVIDER           = "github_gpt41"   # primeiro modelo de geração
 PROVIDER_2         = "github_llama"   # segundo modelo de geração (comparação)
 EVALUATOR_PROVIDER = "github_gpt41"   # modelo de avaliação ACCR (llm_eval.py)
@@ -39,3 +39,12 @@ LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "60"))
 # Prompt para o modelo — carregado do arquivo externo para não misturar conteúdo com config
 _PROMPT_FILE = Path(__file__).parent / "prompts" / "caption.txt"
 CAPTION_PROMPT: str = _PROMPT_FILE.read_text(encoding="utf-8")
+
+# Validação: avisa se GITHUB_TOKEN principal não estiver configurado
+if not GITHUB_TOKEN:
+    import warnings
+    warnings.warn(
+        "GITHUB_TOKEN não configurado. Defina-o no arquivo .env antes de executar.",
+        RuntimeWarning,
+        stacklevel=2,
+    )

@@ -1,3 +1,13 @@
+"""
+get_videos.py — Utilitário one-shot de pré-requisito (NÃO faz parte do pipeline.py).
+
+Execute manualmente UMA VEZ antes de rodar o pipeline para baixar os vídeos disponíveis:
+    python scripts/get_videos.py
+
+ATENÇÃO:
+  - Salva em videos/ (raiz do projeto), não em output/videos/.
+  - Usa random.shuffle sem seed — resultados não são reproduzíveis entre execuções.
+"""
 import json
 import yt_dlp
 import os

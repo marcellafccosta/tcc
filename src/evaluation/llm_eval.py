@@ -17,7 +17,6 @@ import json
 import os
 import re
 import sys
-import tempfile
 import time
 from pathlib import Path
 from typing import List, Dict, Optional
@@ -28,7 +27,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "agent"))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from azure.ai.inference.models import UserMessage
-from azure.core.credentials import AzureKeyCredential
 
 import config
 from token_manager import GerenciadorTokens
@@ -53,89 +51,12 @@ def carregar_json(arquivo: str) -> dict:
 # Métricas Automáticas (BLEU, METEOR, ROUGE-L, CIDEr)
 # ─────────────────────────────────────────────────────────────────
 
-def converter_predictions_para_anet(predictions: dict) -> dict:
-  """
-  Converte predictions.json → formato ANETcaptions.
-  {"results": {vid: [{"sentence": "..."}]}}
-  """
-  results = {}
-  for video in predictions.get("videos", []):
-      vid = video["video_id"]
-      sentences = [
-          {"sentence": seg["caption"]}
-          for seg in video.get("segments", [])
-          if seg.get("caption")
-      ]
-      if sentences:
-          results[vid] = sentences
-  return {"results": results}
-
-
-def converter_gt_para_anet(gt_data: dict) -> dict:
-  """
-  Converte anet_entities_test_X.json → formato ANETcaptions.
-  {vid: "sentence1 sentence2 ..."}
-  """
-  return {
-      vid: " ".join(info.get("sentences", []))
-      for vid, info in gt_data.items()
-      if info.get("sentences")
-  }
-
-
-def avaliar_metricas_automatizadas(
-  predictions_file: str,
-  arquivos_gt: List[str],
-  arquivo_saida: str,
-) -> dict:
-  """
-  Calcula BLEU-4, METEOR, ROUGE-L, CIDEr e R@4 usando AvaliacaoAutomatica.
-  """
-  try:
-      from auto_metrics import AvaliacaoAutomatica
-  except ImportError as e:
-      print(f"  ✗ auto_metrics não encontrado: {e}")
-      return {}
-
-  gt_validos = [f for f in arquivos_gt if os.path.exists(f)]
-  if not gt_validos:
-      print("  ✗ Nenhum arquivo GT válido encontrado")
-      return {}
-
-  try:
-      evaluator = AvaliacaoAutomatica(
-          gt_files=gt_validos,
-          pred_file=predictions_file,
-          verbose=True,
-      )
-      scores = evaluator.evaluate()
-
-      Path(arquivo_saida).parent.mkdir(parents=True, exist_ok=True)
-      tmp = Path(arquivo_saida).with_suffix(".json.tmp")
-      tmp.write_text(json.dumps(scores, ensure_ascii=False, indent=2), encoding="utf-8")
-      tmp.replace(arquivo_saida)
-
-      evaluator.print_results()
-      print(f"\n✓ Métricas salvas em: {arquivo_saida}")
-      return scores
-
-  except Exception as e:
-      print(f"  ✗ Erro ao calcular métricas: {e}")
-      return {}
-
-      for p in gt_paths:
-          try:
-              os.unlink(p)
-          except OSError:
-              pass
-
-
 # ─────────────────────────────────────────────────────────────────
 
 class AvaliadorACCR:
   """
   Usa um LLM como juiz para calcular métricas ACCR.
-  Suporta GitHub Models: github_gpt41 | github_llama | github_phi
+  Suporta GitHub Models: github_gpt41 | github_llama
   """
 
   # Regex primários (marcadores gregos)
@@ -161,7 +82,7 @@ class AvaliadorACCR:
   def __init__(self, provider: str = None, delay: float = None):
       """
       Args:
-          provider: github_gpt41 | github_llama | github_phi
+          provider: github_gpt41 | github_llama
                     (padrão: config.EVALUATOR_PROVIDER)
           delay: segundos entre chamadas (padrão: 6.5s para respeitar 10 req/min)
       """
@@ -188,14 +109,13 @@ class AvaliadorACCR:
       return {
           "github_gpt41": config.GITHUB_GPT41,
           "github_llama": config.GITHUB_LLAMA,
-          "github_phi":   config.GITHUB_PHI,
       }.get(self.provider, config.GITHUB_GPT41)
 
   # ── Chamada ao LLM ────────────────────────────────────────────
 
   def _chamar_llm(self, prompt: str) -> Optional[str]:
       """Envia prompt ao LLM e retorna o texto da resposta."""
-      max_tentativas = 3
+      max_tentativas = max(3, len(self._tokens._clients))
       for tentativa in range(max_tentativas):
           try:
               cliente = self._tokens.cliente_atual()
@@ -640,6 +560,7 @@ def main(args=None):
   MODELO_NOME    = args.modelo_nome if args and hasattr(args, "modelo_nome") else "Modelo1"
   INCLUIR_SKIMCAP = bool(args and args.skimcap)
   OUTPUT_DIR     = args.output_dir if args and hasattr(args, "output_dir") else os.path.join(BASE, "../../output/metrics/accr")
+  os.makedirs(OUTPUT_DIR, exist_ok=True)
   ARQUIVO_AGENTE2 = (
       args.predictions2
       if args and hasattr(args, "predictions2") and args.predictions2
@@ -795,7 +716,7 @@ if __name__ == "__main__":
   )
   _parser.add_argument(
       "--provider", "-m", type=str, default=None,
-      choices=["github_gpt41", "github_llama", "github_phi"],
+      choices=["github_gpt41", "github_llama"],
       help=f"Modelo avaliador (padrão: {config.EVALUATOR_PROVIDER})",
   )
   _parser.add_argument(

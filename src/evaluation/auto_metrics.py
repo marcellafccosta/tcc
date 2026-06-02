@@ -13,7 +13,7 @@ Métricas:
 • R@4      – repetição de 4-gramas entre segmentos (↓ melhor)
 
 Formato de entrada:
-predictions  →  output/predictions.json   (formato do projeto)
+predictions  →  output/predictions_gpt.json   (formato do projeto)
 ground truth →  anet_entities_test_1.json + anet_entities_test_2.json
 
 Uso:
@@ -68,8 +68,11 @@ try:
   import nltk
   from nltk.translate.bleu_score   import corpus_bleu, SmoothingFunction
   from nltk.translate.meteor_score import meteor_score as _meteor_fn
-  nltk.download("wordnet",  quiet=True)
-  nltk.download("omw-1.4", quiet=True)
+  try:
+      nltk.download("wordnet",  quiet=True)
+      nltk.download("omw-1.4", quiet=True)
+  except Exception as e:
+      print(f"⚠️  nltk download falhou (possível erro de rede): {e}. METEOR pode estar indisponível.")
   _NLTK_OK = True
 except ImportError:
   pass
@@ -208,7 +211,8 @@ def load_predictions(filepath: str) -> dict:
           if seg.get("caption")
       ]
       raw[vid]  = caps
-      para[vid] = to_paragraph(caps)
+      p = to_paragraph(caps)
+      para[vid] = p.replace("..", ".").replace(".", " .")
   return raw, para
 
 def load_ground_truth(filepath: str) -> dict:
