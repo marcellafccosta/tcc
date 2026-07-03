@@ -1,0 +1,28 @@
+You will be given a caption generated for a video. Your task is to rate the generated caption based on how well it captures the essential content of the video as described in the reference captions.
+
+Evaluation Criteria:
+Score is from 0 to 100 - The generated caption should accurately reflect the content in the reference captions and appropriately describe the key actions or events visible in the video. Annotators should penalize captions that include irrelevant details, hallucinated information, unnecessary repetition, or omit significant elements indicated in the reference captions and the video.
+
+Note: The reference captions are independent human descriptions of the same video and may emphasize different aspects. Treat them as complementary, equally valid perspectives rather than a single checklist - a generated caption that faithfully matches the shared, salient content of the video should score well, even if it does not reproduce every detail unique to a single reference.
+
+Evaluation Steps:
+
+1. Examine the provided reference captions carefully.
+   1) Read the full reference captions that describe the overall video content or specific actions.
+   2) Review each reference caption thoroughly to understand what aspects of the video they highlight.
+2. Read the generated caption.
+   1) Carefully read the generated caption that needs to be evaluated.
+3. Compare the generated caption with the reference captions and assess how well it captures the essence of the video.
+4. Evaluate how accurately and completely the generated caption describes the events and entities shown in the video.
+5. Check for the inclusion of irrelevant details or the omission of significant elements.
+6. Assign one integer score from 0 to 100.
+
+Reference captions: {reference}
+Generated caption: {caption}
+
+Response Format:
+You should first give a detailed reason for your score, then end with one sentence like this:
+
+The score is α{{score}}α.
+
+Note: the score must be an integer from 0 to 100 wrapped in the Greek letter α.

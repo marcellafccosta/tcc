@@ -1,0 +1,699 @@
+{
+  "dataset": "ActivityNet",
+  "modelos_avaliados": [
+    "GPT-4.1",
+    "LLaMA",
+    "SkimCap"
+  ],
+  "num_videos": 10,
+  "num_segmentos": 10,
+  "dimensoes_avaliadas": [
+    "accuracy",
+    "completeness",
+    "conciseness",
+    "relevance"
+  ],
+  "metricas_por_modelo": {
+    "GPT-4.1": {
+      "accuracy": {
+        "media": 73.2,
+        "min": 30,
+        "max": 95
+      },
+      "completeness": {
+        "media": 65.1,
+        "min": 25,
+        "max": 88
+      },
+      "conciseness": {
+        "media": 85.4,
+        "min": 65,
+        "max": 98
+      },
+      "relevance": {
+        "media": 77.0,
+        "min": 35,
+        "max": 100
+      },
+      "media_geral": 75.17
+    },
+    "LLaMA": {
+      "accuracy": {
+        "media": 56.7,
+        "min": 10,
+        "max": 92
+      },
+      "completeness": {
+        "media": 53.0,
+        "min": 5,
+        "max": 85
+      },
+      "conciseness": {
+        "media": 74.5,
+        "min": 40,
+        "max": 95
+      },
+      "relevance": {
+        "media": 61.3,
+        "min": 10,
+        "max": 100
+      },
+      "media_geral": 61.38
+    },
+    "SkimCap": {
+      "accuracy": {
+        "media": 28.0,
+        "min": 5,
+        "max": 80
+      },
+      "completeness": {
+        "media": 24.8,
+        "min": 3,
+        "max": 65
+      },
+      "conciseness": {
+        "media": 49.0,
+        "min": 10,
+        "max": 85
+      },
+      "relevance": {
+        "media": 31.0,
+        "min": 5,
+        "max": 75
+      },
+      "media_geral": 33.2
+    }
+  },
+  "resultados_por_video": {
+    "v_eS1r2Qi0qUM": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            0.92,
+            30.44
+          ],
+          [
+            21.21,
+            60.87
+          ]
+        ],
+        "ground_truth": [
+          "Four people are seen playing an intense game of badminton with one another as judges watch on the sidelines.  The men continue playing with one another and shows several slow motion clips of the game in the end.",
+          "Two couples play tennis in a competition on front people.  The players Players with yellow t-shirt win the set, they throw the ball that the red team could not return.  The game is replayed again."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "Two badminton teams rally back and forth, with the player in yellow preparing to return a shot from the red team. He then lunges forward to hit the shuttlecock, prompting both yellow team players to react and prepare for the next shot.",
+            "scores": {
+              "accuracy": 90,
+              "completeness": 70,
+              "conciseness": 98,
+              "relevance": 100
+            },
+            "media": 89.5,
+            "resposta_llm": "Reasoning:\n\nAccuracy:  \nThe generated caption correctly identifies the sport as badminton (not tennis, as one reference mistakenly says), and describes two teams (yellow and red) rallying back and forth. It mentions the yellow player preparing to return a shot and lunging forward to hit the shuttlecock, which matches the action described in the references. The caption does not hallucinate or misidentify entities or actions. However, it omits the presence of judges and the slow-motion clips mentioned in the references, but these are not core to the main action. The accuracy is high, but not perfect due to minor omissions.\n\nCompleteness:  \nThe generated caption covers the main action: two teams (yellow and red) playing badminton, rallying, and the yellow team player lunging to return a shot. However, it omits several significant elements: the presence of four players (it only refers to \"teams\" and \"players\"), the competitive context (judges watching, competition), the outcome (yellow team wins the set, red team fails to return), and the slow-motion replay. These omissions mean the caption is not fully complete, though it does capture the core rally and action.\n\nConciseness:  \nThe generated caption is clear, succinct, and avoids unnecessary details or repetition. It describes the main action in a straightforward manner without extraneous information. It is concise and well-structured.\n\nRelevance:  \nThe caption is entirely relevant to the video content, focusing on the badminton rally and the actions of the players. It does not include irrelevant information or questions. All details pertain to the main event.\n\nScores:\n..... The Accuracy score is α90α.\n..... The Completeness score is β70β.\n..... The Conciseness score is ψ98ψ.\n..... The Relevance score is δ100δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "The players hit the shuttlecock back and forth across the net, continuing the intense badminton match. The players in yellow then gain the upper hand, successfully returning the shuttlecock and scoring a point.",
+            "scores": {
+              "accuracy": 90,
+              "completeness": 75,
+              "conciseness": 95,
+              "relevance": 90
+            },
+            "media": 87.5,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy:  \nThe generated caption correctly identifies the sport as badminton (not tennis, as one reference caption mistakenly says), and describes the players hitting the shuttlecock back and forth across the net, which matches the main action described in both reference captions. It also notes that the players in yellow gain the upper hand and score a point, which aligns with the second reference caption mentioning the yellow team winning the set. However, the generated caption omits mention of the judges watching on the sidelines and the slow-motion clips shown at the end, which are present in the first reference caption. Overall, the entities and actions are described accurately, with no hallucinations or errors.\n\nCompleteness:  \nThe generated caption covers the main action (intense badminton match, players in yellow scoring a point), but omits several significant elements: the presence of four players (it does not specify the number), the judges on the sidelines, and the slow-motion clips at the end. It also does not mention the competitive nature (e.g., \"competition\" or \"set\") as explicitly as the reference captions. The omission of these details means the caption is not fully complete, though it does capture the core gameplay and outcome.\n\nConciseness:  \nThe generated caption is clear and succinct, describing the main actions without unnecessary repetition or irrelevant details. It avoids extraneous information and is easy to read. There is no redundancy, and the information is presented in a straightforward manner.\n\nRelevance:  \nThe generated caption is relevant to the video content, focusing on the gameplay and outcome. It does not include irrelevant information or questions. However, it could be slightly more relevant by including the presence of judges or the slow-motion replay, which are notable aspects in the reference captions.\n\nScores:\n..... The Accuracy score is α90α.\n..... The Completeness score is β75β.\n..... The Conciseness score is ψ95ψ.\n..... The Relevance score is δ90δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "two people are seen standing in a large gymnasium playing a game of tennis . the men hit the ball back and fourth while the audience cheers .",
+            "scores": {
+              "accuracy": 30,
+              "completeness": 25,
+              "conciseness": 70,
+              "relevance": 35
+            },
+            "media": 40.0,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption contains several inaccuracies. First, it states \"two people\" are playing, while both reference captions mention four people (two couples or four men). Second, it says they are playing \"tennis,\" but the first reference caption clearly states \"badminton,\" and the second, while mentioning \"tennis,\" describes actions (throwing the ball, replaying) that could fit either sport, but the first is explicit about badminton. The generated caption also mentions \"audience cheers,\" but the references only mention judges or people watching, not cheering. Overall, the generated caption misidentifies the number of players, the sport, and adds details not supported by the references.\n\nCompleteness: The generated caption omits several significant elements. It does not mention the competitive nature of the game, the presence of judges, the slow-motion clips, or the outcome (which team wins, replaying the game). It also fails to capture the intensity described in the first reference caption and the competitive aspect in the second. The generated caption is missing key events and aspects.\n\nConciseness: The generated caption is clear and succinct, but since it is inaccurate and incomplete, its conciseness is less valuable. It does not include unnecessary details or repetition, but the lack of detail is due to omission rather than effective summarization.\n\nRelevance: The generated caption is somewhat relevant in that it describes people playing a racket sport in a gymnasium, but it misidentifies the sport, the number of players, and adds irrelevant details (audience cheering). It does not capture the main events or the competitive context, so its relevance is limited.\n\nScores:\n..... The Accuracy score is α30α.\n..... The Completeness score is β25β.\n..... The Conciseness score is ψ70ψ.\n..... The Relevance score is δ35δ.",
+            "valido": true
+          }
+        }
+      }
+    ],
+    "v_UXi0Cy16-0Y": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            0,
+            4.04
+          ],
+          [
+            4.04,
+            41.93
+          ],
+          [
+            41.42,
+            76.28
+          ],
+          [
+            76.78,
+            101.03
+          ]
+        ],
+        "ground_truth": [
+          "A young boy is standing in the gym of the University of South Florida and begins to start jumping rope. The jumps are behind his leg and his head, and around the back. The male then starts doing flips and rolls across the floor and continues doing a series of jumps. Near the end,he does a split,nods to the judges and looks at the screen for his score.",
+          "A boy walks into the center of a court in front of judges.  He begins to jump using a jump rope.  He spins and flips with the rope."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "A participant stands alone at center court, preparing to begin their routine as judges and spectators watch attentively. The participant then begins jumping and performing coordinated movements, demonstrating agility and control at the center of the court. He then incorporates a jump rope, skillfully executing quick jumps and spins while maintaining his rhythm and focus. Next, he transitions smoothly out of the jump rope routine and walks confidently across the court toward the judges.",
+            "scores": {
+              "accuracy": 80,
+              "completeness": 70,
+              "conciseness": 90,
+              "relevance": 95
+            },
+            "media": 83.75,
+            "resposta_llm": "Reasoning:\n\nAccuracy:  \nThe generated caption accurately describes the main actions: a participant (boy) stands at center court, begins a routine, jumps, uses a jump rope, performs coordinated movements, and walks toward the judges. The caption correctly identifies the presence of judges and spectators, and the participant's agility and control. However, it omits some specific actions described in the reference captions, such as jumps behind the leg/head, flips, rolls, splits, and nodding to the judges. The gender (\"he\") is correct, matching the reference captions. There are no hallucinations or errors, but the lack of detail on the specific tricks and moves means it is not fully accurate.\n\nCompleteness:  \nThe generated caption covers the general flow of the routine: starting, jumping, using a jump rope, performing movements, and finishing by walking toward the judges. However, it misses several significant elements: the specific tricks (jumps behind leg/head, flips, rolls, split), the nod to the judges, and looking at the screen for his score. These are notable actions highlighted in the reference captions and are part of the essential content. The caption is somewhat generic and does not capture the full range of dynamic actions.\n\nConciseness:  \nThe caption is clear and succinct, avoiding unnecessary repetition or irrelevant details. It describes the sequence of events in a straightforward manner. While it could be more concise by omitting phrases like \"demonstrating agility and control\" (which are somewhat implied), overall it is not verbose and maintains clarity.\n\nRelevance:  \nThe generated caption is relevant to the video content, focusing on the participant's routine, the use of the jump rope, and the interaction with the judges. It does not include irrelevant information or questions. All details pertain to the main events described in the reference captions.\n\nScores:\nThe Accuracy score is α80α.  \nThe Completeness score is β70β.  \nThe Conciseness score is ψ90ψ.  \nThe Relevance score is δ95δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "The woman in red serves the ball, initiating the competition on the USF court. She then performs a rope skipping routine, showcasing her skills on the USF court. He then transitions to a young boy, who performs a jump rope routine on the same USF court. He then performs a jump rope routine, showcasing his skills on the USF court alongside other competitors.",
+            "scores": {
+              "accuracy": 30,
+              "completeness": 25,
+              "conciseness": 40,
+              "relevance": 30
+            },
+            "media": 31.25,
+            "resposta_llm": "Detailed Reasoning:\n\n**Accuracy:**  \nThe generated caption contains several inaccuracies. First, it mentions \"The woman in red serves the ball,\" which is not reflected in any of the reference captions and appears to be a hallucination. The reference captions consistently describe a young boy performing a jump rope routine, not a woman serving a ball. The generated caption also refers to \"other competitors,\" but the reference captions focus solely on the boy's individual performance. The generated caption does correctly mention a jump rope routine and the USF court, but the initial description and the mention of other competitors are incorrect.  \n..... The Accuracy score is α30α.\n\n**Completeness:**  \nThe generated caption omits several significant elements described in the reference captions. It does not mention the boy's flips, rolls, splits, nodding to the judges, or looking at the screen for his score. These are key actions that define the performance and are highlighted in the reference captions. The generated caption only briefly mentions rope skipping and a jump rope routine, missing the dynamic actions and the conclusion of the performance.  \n..... The Completeness score is β25β.\n\n**Conciseness:**  \nThe generated caption is not concise. It repeats phrases such as \"showcasing his skills on the USF court\" and \"performs a jump rope routine\" multiple times. The structure is also confusing, as it transitions from a woman to a boy, which is unnecessary and misleading. The repetition and inclusion of irrelevant details reduce clarity and succinctness.  \n..... The Conciseness score is ψ40ψ.\n\n**Relevance:**  \nThe generated caption includes irrelevant information, such as the woman serving a ball and the presence of other competitors, which are not part of the video as described by the reference captions. The focus should be on the boy's jump rope routine and his performance, but the generated caption introduces unrelated elements, making it less relevant to the actual content.  \n..... The Relevance score is δ30δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "a woman is seen standing on a court holding a ball and then her hands down . she then begins jumping rope while jumping over her head . she continues jumping and jumping around the court while jumping the camera . she continues jumping and ends with her jump rope .",
+            "scores": {
+              "accuracy": 15,
+              "completeness": 10,
+              "conciseness": 30,
+              "relevance": 20
+            },
+            "media": 18.75,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption contains several inaccuracies. First, it describes \"a woman\" as the main subject, while both reference captions clearly state the subject is a \"boy\" or \"young boy.\" Second, it mentions the woman is \"holding a ball,\" which is not referenced in any of the reference captions and appears to be a hallucination. The actions described (\"jumping rope while jumping over her head,\" \"jumping around the court,\" \"jumping the camera\") are vague and do not accurately capture the specific tricks and flips performed by the boy, such as jumping behind his leg, head, and back, and doing flips and rolls. The ending (\"ends with her jump rope\") is unclear and does not mention the split, nod to judges, or looking at the screen for his score, which are important details in the reference captions. Overall, the generated caption misidentifies the subject, includes hallucinated objects, and fails to accurately describe the key actions.\n\nCompleteness: The generated caption omits several significant elements. It does not mention the boy's entrance, the presence of judges, the specific tricks (behind leg, head, back, flips, rolls), the split, the nod to judges, or looking at the screen for his score. It only vaguely describes jumping rope and jumping around the court, missing the dynamic and complex actions that are central to the video. The completeness is therefore very low.\n\nConciseness: The generated caption is somewhat concise in length, but it suffers from repetition (\"she continues jumping and jumping around the court while jumping the camera\") and unclear phrasing (\"jumping the camera,\" \"ends with her jump rope\"). It does not provide clear, succinct descriptions of the actions, and instead uses vague and repetitive language. The lack of clarity and unnecessary repetition reduces its conciseness.\n\nRelevance: The generated caption is not fully relevant to the video content. It misidentifies the subject as a woman, introduces a ball (irrelevant), and fails to mention the judges, the tricks, and the ending actions. The only relevant aspect is the mention of jumping rope, but even this is described in a vague and incomplete manner. The inclusion of irrelevant details and omission of key elements make the caption poorly relevant.\n\nScores:\n..... The Accuracy score is α15α.\n..... The Completeness score is β10β.\n..... The Conciseness score is ψ30ψ.\n..... The Relevance score is δ20δ.",
+            "valido": true
+          }
+        }
+      }
+    ],
+    "v_VtIMPJjcdn4": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            5.35,
+            71.99
+          ],
+          [
+            21.39,
+            29.62
+          ],
+          [
+            30.44,
+            63.35
+          ]
+        ],
+        "ground_truth": [
+          "A woman is standing behind a table.  She picks up a shoe and pours baking soda into the shoe.  She shakes it around and dumps out the baking soda.",
+          "A woman shows how to get odor out of shoes.   She pours baking soda in the shoes.   Then she pours the baking soda back out."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "A woman sits at a table with pink sneakers and a box of baking soda, preparing to demonstrate a cleaning method. She then pours baking soda into one of the sneakers, demonstrating how to apply it for cleaning purposes. Next, she explains the benefits of using baking soda, then shakes the sneaker to distribute the powder inside evenly.",
+            "scores": {
+              "accuracy": 75,
+              "completeness": 70,
+              "conciseness": 65,
+              "relevance": 70
+            },
+            "media": 70.0,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption mostly describes the correct actions and entities: a woman, a table, sneakers, and baking soda. However, there is a notable inaccuracy: the generated caption says the woman \"sits at a table,\" while both reference captions state she is \"standing behind a table.\" Additionally, the generated caption mentions \"explains the benefits of using baking soda,\" which is not supported by the reference captions—there is no mention of verbal explanation or discussion of benefits, only demonstration. The generated caption also refers to \"preparing to demonstrate a cleaning method,\" which is implied but not explicitly shown in the references. The color \"pink sneakers\" is not mentioned in the references, but this is a minor detail. Overall, the main actions (pouring baking soda, shaking the shoe, dumping it out) are captured, but the inclusion of explanation and sitting are inaccuracies.\n\nCompleteness: The generated caption covers most of the significant actions: pouring baking soda into the shoe, shaking it to distribute, and the context of cleaning. However, it omits the final step described in both reference captions: the woman \"dumps out\" or \"pours the baking soda back out\" of the shoe. This is a key part of the process and its omission is a significant gap. The generated caption also adds an explanation step that is not present in the references, which does not contribute to completeness.\n\nConciseness: The generated caption is somewhat verbose, including phrases like \"preparing to demonstrate a cleaning method,\" \"demonstrating how to apply it for cleaning purposes,\" and \"explains the benefits of using baking soda,\" which are not necessary and not supported by the references. The caption could be more succinct by focusing on the actions performed. The inclusion of extra details and repetition (demonstrating, explaining, preparing) reduces conciseness.\n\nRelevance: The generated caption is mostly relevant to the video content, focusing on the woman, the shoes, and the baking soda. However, the mention of \"explains the benefits\" and \"preparing to demonstrate\" introduces irrelevant information not present in the references. The main actions are relevant, but the extra details detract from the overall pertinence.\n\nScores:\n..... The Accuracy score is α75α.\n..... The Completeness score is β70β.\n..... The Conciseness score is ψ65ψ.\n..... The Relevance score is δ70δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "She demonstrates cleaning pink sneakers using baking soda, shaking and handling them throughout the process. She then pours the baking soda from the box into the shoe, preparing for the next step. She next shakes the shoe to distribute the baking soda evenly inside.",
+            "scores": {
+              "accuracy": 85,
+              "completeness": 75,
+              "conciseness": 80,
+              "relevance": 90
+            },
+            "media": 82.5,
+            "resposta_llm": "Reasoning:\n\nAccuracy: The generated caption accurately describes the main actions: a woman demonstrates cleaning sneakers using baking soda, pours baking soda into the shoe, and shakes the shoe to distribute it. The mention of \"pink sneakers\" is a minor addition, but not incorrect if the video shows pink shoes. The phrase \"preparing for the next step\" is slightly vague, as the reference captions indicate she dumps the baking soda out, which is not mentioned in the generated caption. Overall, the entities and actions are correct, but the omission of the final step (dumping out the baking soda) is a small accuracy issue.\n\nCompleteness: The generated caption covers most of the significant actions: pouring baking soda, shaking the shoe, and handling the shoe. However, it omits the final step described in both reference captions, where the woman dumps out the baking soda. This is a notable omission, as it is part of the process shown in the video and referenced by both human captions. The caption also does not explicitly mention the purpose (removing odor), but this is less critical than missing the dumping step.\n\nConciseness: The generated caption is mostly clear and succinct, but it includes some redundancy (\"shaking and handling them throughout the process\" and \"she next shakes the shoe\") and a slightly unnecessary phrase (\"preparing for the next step\"), which does not add meaningful information. The mention of \"demonstrates cleaning pink sneakers\" is concise, but the overall caption could be tighter.\n\nRelevance: The generated caption is relevant to the video content, focusing on the actions performed with the shoe and baking soda. It does not include irrelevant information or questions. The only minor issue is the lack of explicit mention of the final step (dumping out the baking soda), but all described actions are pertinent.\n\nScores:\n..... The Accuracy score is α85α.\n..... The Completeness score is β75β.\n..... The Conciseness score is ψ80ψ.\n..... The Relevance score is δ90δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "a woman is standing behind a table with a shoe , talking . she picks up a bottle of ice and pours it into the glass . she then puts the rag in the shoe and starts to clean it .",
+            "scores": {
+              "accuracy": 10,
+              "completeness": 10,
+              "conciseness": 20,
+              "relevance": 10
+            },
+            "media": 12.5,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption contains several inaccuracies. The reference captions clearly state that the woman pours baking soda into a shoe, shakes it, and pours it out. The generated caption instead says she pours \"a bottle of ice\" into a glass, which is not mentioned in any reference and is factually incorrect. It also says she puts a rag in the shoe and starts to clean it, which is not described in the references. The only accurate part is that a woman is standing behind a table with a shoe, but the actions are wrong. Therefore, the accuracy is very low.\n\nCompleteness: The generated caption omits the main event: pouring baking soda into the shoe, shaking it, and pouring it out. It introduces unrelated actions (pouring ice into a glass, cleaning with a rag) and misses the demonstration of removing odor from shoes. It fails to capture the essential steps and purpose of the video, so completeness is also very low.\n\nConciseness: The generated caption is not overly verbose, but it includes irrelevant and incorrect details (pouring ice, cleaning with a rag) that detract from clarity and succinctness. It is not concise in the sense that it adds unnecessary and inaccurate information.\n\nRelevance: The generated caption is mostly irrelevant to the actual content of the video. It describes actions (pouring ice, cleaning with a rag) that do not occur and omits the main event (using baking soda to remove odor from shoes). Only the mention of a woman standing behind a table with a shoe is relevant, but the rest is not.\n\nScores:\n..... The Accuracy score is α10α.\n..... The Completeness score is β10β.\n..... The Conciseness score is ψ20ψ.\n..... The Relevance score is δ10δ.",
+            "valido": true
+          }
+        }
+      }
+    ],
+    "v_rMZtiiLAqoY": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            0,
+            27.17
+          ],
+          [
+            21.27,
+            105.15
+          ],
+          [
+            105.15,
+            118.14
+          ]
+        ],
+        "ground_truth": [
+          "A man is seen speaking to the camera and holding up a coin to put in a machine.  The man puts the coin in as well as a knife and begins playing a game of fooseball using a lever moving the ball around the side.  He ends by smiling to the camera and giving a thumbs up.",
+          "A man with disheveled hair talks to the camera while standing next to a table football table.  The man holds a coin up to the camera.  The man inserts the coin into the table.  the man jams the coin mechanism with a knife.  The man uses a mechanism to insert multiple table football balls onto the table.  A closeup of the ball dispenser mechanism is shown.  The man plays table football by himself, scoring several goals.  Another closeup of the ball dispenser is shown.  The man smiles at the camera."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "A young man walks toward a foosball table and then grabs the handle, preparing to play. He then inserts a coin into the slot, turns the mechanism, and steps back as the foosball table unlocks. He then reaches into the ball return slot and retrieves a foosball, getting ready to start the game.",
+            "scores": {
+              "accuracy": 60,
+              "completeness": 50,
+              "conciseness": 85,
+              "relevance": 60
+            },
+            "media": 63.75,
+            "resposta_llm": "Reasoning:\n\nAccuracy:  \nThe generated caption correctly identifies a young man approaching a foosball table, grabbing the handle, inserting a coin, turning the mechanism, and retrieving a foosball. However, it omits the use of a knife to jam the coin mechanism, which is a significant and unusual action described in both reference captions. It also does not mention the man speaking to the camera, smiling, or giving a thumbs up, nor does it mention scoring goals or playing the game. The description of the table unlocking and the man stepping back is not supported by the references, and the retrieval of the ball is only partially accurate (the mechanism dispenses multiple balls, not just one). Overall, the caption is partially accurate but misses key actions and includes minor inaccuracies.\n\nCompleteness:  \nThe generated caption covers the initial setup and preparation for playing foosball but omits several significant events: the man talking to the camera, holding up the coin, jamming the mechanism with a knife, dispensing multiple balls, playing and scoring goals, closeups of the ball dispenser, smiling, and giving a thumbs up. These are all salient actions described in the reference captions and are essential to the video’s content. The generated caption only describes the beginning of the sequence and misses the main gameplay and unique actions.\n\nConciseness:  \nThe generated caption is clear and succinct, describing the actions in a straightforward manner without unnecessary repetition or irrelevant details. However, it could be more concise by omitting the step of \"stepping back as the foosball table unlocks,\" which is not relevant or supported by the references. Still, it is not verbose.\n\nRelevance:  \nThe generated caption is relevant to the video in that it describes the man interacting with the foosball table and preparing to play. However, it omits several relevant actions (knife, ball dispenser, gameplay, smiling, thumbs up) and includes a detail about the table unlocking that is not mentioned in the references. It does not stray into completely irrelevant territory, but it fails to capture the most important and unique aspects of the video.\n\nScores:\n..... The Accuracy score is α60α.\n..... The Completeness score is β50β.\n..... The Conciseness score is ψ85ψ.\n..... The Relevance score is δ60δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "He approaches a foosball table and puts his hand on it. He then tightens the foosball table's rods into place, securing them firmly. He continues to adjust the foosball table's rods, ensuring they are properly secured and aligned.",
+            "scores": {
+              "accuracy": 10,
+              "completeness": 5,
+              "conciseness": 70,
+              "relevance": 10
+            },
+            "media": 23.75,
+            "resposta_llm": "Reasoning:\n\nAccuracy: The generated caption describes a man approaching a foosball table and adjusting/tightening the rods. However, according to both reference captions, the main actions are: the man speaks to the camera, holds up a coin, inserts the coin, jams the mechanism with a knife, uses a mechanism to dispense balls, plays foosball, scores goals, and smiles/gives a thumbs up. There is no mention in the references of tightening or aligning the rods. The generated caption is inaccurate, as it describes actions not present in the references and omits the actual events.\n\nCompleteness: The generated caption omits all the significant events described in the references: coin insertion, knife jamming, ball dispensing, playing foosball, scoring goals, and interacting with the camera. It only describes adjusting the rods, which is not a key event in the references. Therefore, it is highly incomplete.\n\nConciseness: The generated caption is clear and succinct, but it repeats the idea of adjusting/tightening the rods three times. While it avoids unnecessary details, the repetition slightly reduces conciseness.\n\nRelevance: The generated caption is not relevant to the main content of the video as described in the references. It focuses on rod adjustment, which is not mentioned in the reference captions and ignores the actual events. Therefore, it is not pertinent to the overall video content.\n\nScores:\n..... The Accuracy score is α10α.\n..... The Completeness score is β5β.\n..... The Conciseness score is ψ70ψ.\n..... The Relevance score is δ10δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "a woman is seen speaking to the camera while holding a camera and leads into her cutting a girl 's she then puts on the table and continues to play the game of the table . she finishes and walks away while continuing to speak to the camera .",
+            "scores": {
+              "accuracy": 5,
+              "completeness": 3,
+              "conciseness": 10,
+              "relevance": 5
+            },
+            "media": 5.75,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy:  \nThe generated caption is highly inaccurate. The reference captions clearly describe a man (not a woman) speaking to the camera, holding a coin, and interacting with a foosball/table football table. The generated caption mentions a woman holding a camera, cutting a girl, and playing a game on a table, which is not only incorrect in terms of the entities (gender, actions) but also introduces hallucinated actions (\"cutting a girl\") that are not present in any reference. There is no mention of a knife being used to jam the coin mechanism, nor of foosball or table football. The generated caption fails to correctly identify the main participants, objects, and actions.\n\nCompleteness:  \nThe generated caption omits all significant events described in the reference captions. It does not mention the coin, the foosball/table football table, the use of a knife, the ball dispenser mechanism, or the man playing and scoring goals. The only vague overlap is \"playing the game of the table,\" which is not specific enough to capture the essence of the video. The caption also invents irrelevant actions (\"cutting a girl\") and misses the ending actions (smiling, thumbs up). Overall, it is almost entirely incomplete.\n\nConciseness:  \nWhile the generated caption is not overly long, it is not clear or succinct. It is confusing, with awkward phrasing (\"leads into her cutting a girl 's she then puts on the table\"), and includes irrelevant and hallucinated details. The lack of clarity and the inclusion of unrelated actions detract from its conciseness.\n\nRelevance:  \nThe generated caption is largely irrelevant to the actual content of the video. It describes a woman, a camera, and cutting a girl, none of which are present in the reference captions. The only remotely relevant part is the mention of playing a game on a table, but this is too vague and does not pertain specifically to foosball/table football. The caption fails to focus on the salient aspects of the video.\n\nScores:\n..... The Accuracy score is α5α.\n..... The Completeness score is β3β.\n..... The Conciseness score is ψ10ψ.\n..... The Relevance score is δ5δ.",
+            "valido": true
+          }
+        }
+      }
+    ],
+    "v_bvnXdr-Hre4": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            0,
+            28.08
+          ],
+          [
+            28.97,
+            64.18
+          ],
+          [
+            53.49,
+            86.91
+          ]
+        ],
+        "ground_truth": [
+          "A person is seen standing on the edge of a diving board jumping into a pool.  People watch on the side as the girl takes another turn diving into the pool.  The girl dives several more times backwards into the pool while others continue to watch.",
+          "a woman runs down a diving board.  She bounces on the edge of the board.  She jumps into the water, back flipping and forward jumping."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "A diver prepares to jump from the springboard above an indoor pool, beginning their routine in front of judges. The diver then leaps from the board, performing an inward tuck followed by a reverse layout before entering the water. The diver completes the dive with a clean entry into the water, creating minimal splash as the judges observe.",
+            "scores": {
+              "accuracy": 65,
+              "completeness": 55,
+              "conciseness": 75,
+              "relevance": 60
+            },
+            "media": 63.75,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption describes a diver preparing to jump from a springboard above an indoor pool, performing an inward tuck and a reverse layout, and entering the water with minimal splash in front of judges. The reference captions describe a woman/girl running down a diving board, bouncing, jumping, back flipping, and forward jumping into a pool, with people watching from the side. The generated caption introduces specific dive types (\"inward tuck,\" \"reverse layout\") and mentions judges, which are not present in the reference captions. The reference captions do not specify the technical names of the dives or the presence of judges, but rather mention spectators. The generated caption is accurate in describing a diving event, but it adds details (judges, specific dive names, minimal splash) that are not confirmed by the references and may be hallucinated. Therefore, accuracy is penalized for these additions.\n\nCompleteness: The generated caption covers the diver's preparation, the jump, the dive, and the entry into the water, but it omits the repeated diving action (\"dives several more times backwards into the pool\") and the fact that the diver is a woman/girl. It also does not mention the running or bouncing on the board, which are highlighted in the references. The generated caption focuses on a single dive and does not capture the multiple dives or the dynamic actions (running, bouncing, back flipping, forward jumping) described in the references. Thus, completeness is notably lacking.\n\nConciseness: The generated caption is clear and succinct, but it includes unnecessary details (judges, specific dive names, minimal splash) that are not relevant to the reference captions. While it avoids repetition, the inclusion of extraneous information reduces its conciseness.\n\nRelevance: The generated caption is generally relevant to the context of a diving event, but the mention of judges, technical dive names, and minimal splash are not supported by the reference captions. The focus on a single routine and the omission of repeated dives and the presence of spectators (not judges) detract from its relevance to the actual video content as described.\n\nScores:\n..... The Accuracy score is α65α.\n..... The Completeness score is β55β.\n..... The Conciseness score is ψ75ψ.\n..... The Relevance score is δ60δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "The man then jumps into the pool, performing an inward tuck dive. He then climbs out of the pool and prepares for his next dive, a reverse layout. He then performs a reverse layout dive, jumping from the platform and entering the water smoothly.",
+            "scores": {
+              "accuracy": 40,
+              "completeness": 55,
+              "conciseness": 85,
+              "relevance": 60
+            },
+            "media": 60.0,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy:  \nThe generated caption describes \"the man\" jumping into the pool, performing an inward tuck dive, then climbing out and preparing for a reverse layout dive, which he then performs. However, both reference captions clearly indicate that the diver is a woman/girl, not a man. This is a significant error in entity identification. Additionally, the reference captions do not mention specific dive types like \"inward tuck\" or \"reverse layout,\" but rather describe backflipping and forward jumping. The generated caption also mentions jumping from a \"platform,\" while the references specify a \"diving board.\" These inaccuracies detract from the caption's correctness.\n\nCompleteness:  \nThe generated caption covers the sequence of diving, climbing out, and preparing for another dive, which aligns with the repeated diving described in the references. However, it omits the presence of spectators (\"people watch on the side\"), and does not mention the running or bouncing on the board, nor the variety of dives (back flipping and forward jumping) described in the references. The caption is somewhat complete in terms of the diver's actions, but misses several significant aspects.\n\nConciseness:  \nThe generated caption is clear and succinct, describing the sequence of events without unnecessary repetition or irrelevant details. It is slightly verbose in specifying dive types, but overall maintains a concise structure.\n\nRelevance:  \nThe caption is relevant to the main action of the video (diving into the pool), but includes some irrelevant or inaccurate details (wrong gender, specific dive names not supported by references, platform instead of diving board). It also omits the presence of spectators, which is a relevant aspect in the references.\n\nScores:\n..... The Accuracy score is α40α.\n..... The Completeness score is β55β.\n..... The Conciseness score is ψ85ψ.\n..... The Relevance score is δ60δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "a person is seen walking forward and jumping off a diving board . the person is seen walking around the pool while another man watches him . the man continues to swim around the pool .",
+            "scores": {
+              "accuracy": 30,
+              "completeness": 25,
+              "conciseness": 60,
+              "relevance": 35
+            },
+            "media": 37.5,
+            "resposta_llm": "Reasoning:\n\nAccuracy: The generated caption misidentifies the gender of the main subject (references specify a girl/woman, generated caption says \"a person\" and \"him\"), and introduces actions not supported by the references (walking around the pool, another man watching, a man swimming). The references focus on a woman/girl diving, with spectators watching, but do not mention anyone swimming or walking around the pool. The generated caption also omits the key action of backflipping and repeated dives. These inaccuracies and hallucinations significantly reduce the accuracy.\n\nCompleteness: The generated caption fails to mention several essential elements: the repeated dives, the backflip, the spectators, and the dynamic nature of the diving. It only describes a single jump and adds irrelevant actions (walking, swimming) not present in the references. The omission of the main actions and the addition of unrelated details make the caption incomplete.\n\nConciseness: The generated caption is relatively succinct, but it includes unnecessary and irrelevant details (walking around the pool, another man watching, swimming) that detract from clarity. It does not repeat itself, but the inclusion of extraneous information reduces its effectiveness.\n\nRelevance: The caption includes irrelevant information (walking around the pool, another man watching, swimming) that is not supported by the reference captions. The main focus should be on the diving actions and the spectators, but the generated caption shifts focus to unrelated activities, making it less relevant to the video content.\n\nScores:\n..... The Accuracy score is α30α.\n..... The Completeness score is β25β.\n..... The Conciseness score is ψ60ψ.\n..... The Relevance score is δ35δ.",
+            "valido": true
+          }
+        }
+      }
+    ],
+    "v_j4Ru2L4u0Qk": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            0.91,
+            87.26
+          ],
+          [
+            0.91,
+            91.37
+          ]
+        ],
+        "ground_truth": [
+          "This man is shown hitting the ball while it is on the ground and he is making it go far in the air.  He is wearing a blue and white outfit.",
+          "A man is practicing hitting a ball with a stick on a field.  He continues to hit the ball onto the field.  He is wearing a helmet and a jersey."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "A player in a hurling uniform prepares, swings, and strikes the ball across the field with a hurley stick. He then repeats the striking motion several times, carefully positioning himself and swinging the hurley at the ball.",
+            "scores": {
+              "accuracy": 95,
+              "completeness": 88,
+              "conciseness": 96,
+              "relevance": 98
+            },
+            "media": 94.25,
+            "resposta_llm": "Reasoning:\n\nAccuracy: The generated caption accurately describes the main action: a player in a hurling uniform striking a ball across the field with a hurley stick. The reference captions mention a man hitting a ball with a stick, wearing a blue and white outfit, a helmet, and a jersey. The generated caption correctly identifies the sport (hurling), the equipment (hurley stick), and the repeated action of striking the ball. There are no hallucinations or errors in the description, and the entities are correctly identified.\n\nCompleteness: The generated caption covers the essential actions: preparing, swinging, striking the ball, and repeating the motion. It notes the player is in uniform and describes the repeated nature of the activity. However, it omits some minor details from the references, such as the color of the outfit (blue and white), the mention of a helmet, and the fact that the ball is initially on the ground before being hit into the air. The caption does not specify that the ball is hit far in the air, which is a salient detail in reference 1. Still, it captures the main sequence and the repeated practice.\n\nConciseness: The generated caption is clear and succinct, avoiding unnecessary repetition or irrelevant details. It describes the actions in a straightforward manner, though the phrase \"carefully positioning himself\" could be considered slightly verbose, but it does not detract significantly from clarity.\n\nRelevance: The caption is highly relevant to the video content, focusing on the player, the action of striking the ball, and the repeated practice. It does not include irrelevant information or questions.\n\nScores:\n..... The Accuracy score is α95α.\n..... The Completeness score is β88β.\n..... The Conciseness score is ψ96ψ.\n..... The Relevance score is δ98δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "He then practices hitting a ball with a hurley stick, repeating the motion several times. He continues to practice hitting the ball with the hurley stick, successfully striking it on several occasions.",
+            "scores": {
+              "accuracy": 85,
+              "completeness": 75,
+              "conciseness": 90,
+              "relevance": 100
+            },
+            "media": 87.5,
+            "resposta_llm": "Reasoning:\n\nAccuracy: The generated caption accurately describes the main action: a man practicing hitting a ball with a hurley stick, repeating the motion several times and successfully striking the ball. This matches the reference captions, which mention a man hitting a ball with a stick (specifically a hurley stick, which is correct for the sport). The generated caption does not introduce any errors or hallucinations. However, it omits some visual details present in the references, such as the man's outfit (blue and white, helmet, jersey), and the fact that the ball is on the ground and is sent far in the air. Still, the core action is correct.\n\nCompleteness: The generated caption covers the main action (practicing hitting the ball with a hurley stick, repeating the motion), but it misses some significant elements: the description of the man's outfit, the fact that he is on a field, the ball being on the ground, and the result of the hit (making the ball go far in the air). These are salient details in the reference captions. The caption focuses on the repeated action but omits the setting and some outcome details.\n\nConciseness: The generated caption is clear and avoids unnecessary details or repetition. However, it does repeat the idea of practicing and hitting the ball with the hurley stick in two sentences, which is somewhat redundant. Still, the repetition is not excessive and the caption remains succinct.\n\nRelevance: The generated caption is fully relevant to the video content, focusing on the main action and not introducing any irrelevant information. It stays on topic and does not include extraneous details or questions.\n\nScores:\n..... The Accuracy score is α85α.\n..... The Completeness score is β75β.\n..... The Conciseness score is ψ90ψ.\n..... The Relevance score is δ100δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "a man in a green shirt is standing in a field playing a game of lacrosse . he is in a field playing a game of lacrosse .",
+            "scores": {
+              "accuracy": 10,
+              "completeness": 15,
+              "conciseness": 70,
+              "relevance": 20
+            },
+            "media": 28.75,
+            "resposta_llm": "Reasoning:\n\nAccuracy: The generated caption incorrectly identifies the sport as lacrosse, while the reference captions describe a man hitting a ball with a stick, which is more consistent with cricket or baseball, not lacrosse. Additionally, the generated caption says the man is wearing a green shirt, while the references mention blue and white outfit, helmet, and jersey. These are significant factual errors regarding both the activity and the attire. Therefore, the accuracy is very low.\n\nCompleteness: The generated caption omits key actions described in the reference captions, such as the man hitting the ball on the ground and making it go far in the air, or practicing hitting the ball onto the field. It only mentions \"playing a game of lacrosse\" and repeats the location, without describing any specific actions or scene transitions. Thus, it fails to capture the essential events.\n\nConciseness: The generated caption is clear and succinct, but it repeats the phrase \"he is in a field playing a game of lacrosse,\" which is unnecessary. The repetition slightly reduces conciseness, but otherwise, it is not verbose.\n\nRelevance: The caption is somewhat relevant in that it describes a man playing a sport in a field, but the incorrect identification of the sport and attire makes it less pertinent to the actual video content. The repetition also detracts from relevance.\n\n..... The Accuracy score is α10α.\n..... The Completeness score is β15β.\n..... The Conciseness score is ψ70ψ.\n..... The Relevance score is δ20δ.",
+            "valido": true
+          }
+        }
+      }
+    ],
+    "v_7ZbH4vHTmVs": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            0,
+            20.06
+          ],
+          [
+            20.59,
+            28.51
+          ],
+          [
+            28.51,
+            98.19
+          ],
+          [
+            99.77,
+            105.58
+          ]
+        ],
+        "ground_truth": [
+          "A group of people pick up dead leaves in a back yard using leaf rakes.  Two girls put dead leaves in a plastic container.  People continues cleaning the yard.  A man an two boys are inside a car.",
+          "People are raking leaves in a front yard.  Two girls are lifting the leaves up and putting them into a garbage can.  People are sitting in a mini van."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "A group of people rake leaves in the yard, and then a boy continues gathering leaves near the driveway. Next, two people lift a pile of leaves and toss them into a trash bin beside the driveway. Afterward, several people spread out along the fence, raking leaves and gathering them into piles across the yard. Then, several people climb into the back of a minivan parked by the curb, smiling and chatting together.",
+            "scores": {
+              "accuracy": 92,
+              "completeness": 88,
+              "conciseness": 95,
+              "relevance": 97
+            },
+            "media": 93.0,
+            "resposta_llm": "Reasoning:\n\nAccuracy:  \nThe generated caption accurately describes the main actions: people raking leaves in the yard, two people lifting leaves into a trash bin, and people climbing into a minivan. The entities (people, girls, boys, minivan, yard) are correctly identified. The caption adds some details (\"boy continues gathering leaves near the driveway,\" \"people spread out along the fence,\" \"smiling and chatting together\") that are plausible but not explicitly confirmed in the reference captions. The reference captions mention \"a man and two boys are inside a car\" and \"people are sitting in a minivan,\" but the generated caption says \"several people climb into the back of a minivan parked by the curb, smiling and chatting together,\" which is a reasonable interpretation but adds the \"smiling and chatting\" detail not present in the references. Overall, the generated caption is accurate, with minor embellishments.\n\nCompleteness:  \nThe generated caption covers the main events: raking leaves, gathering leaves, putting them into a trash bin, and people getting into a minivan. It includes the sequence of actions and scene transitions. However, it omits the explicit mention of \"two girls\" (instead says \"two people\"), and the reference captions mention both \"front yard\" and \"back yard,\" while the generated caption just says \"yard\" and \"driveway.\" The generated caption does not mention the \"man and two boys\" specifically inside the car, but instead refers to \"several people\" climbing into the minivan. The generated caption does not mention the plastic container, but refers to a trash bin, which is a reasonable synonym. Overall, the generated caption is mostly complete, but misses some specific details (e.g., gender/age of participants, exact location).\n\nConciseness:  \nThe generated caption is clear and succinct, describing the sequence of events without unnecessary repetition. It is slightly more verbose than the reference captions, with phrases like \"spread out along the fence, raking leaves and gathering them into piles across the yard,\" but this adds clarity rather than redundancy. The caption avoids irrelevant details and is well-structured.\n\nRelevance:  \nThe generated caption is highly relevant to the video content, focusing on the main actions and entities. It does not include irrelevant information or questions. The minor embellishments (\"smiling and chatting together\") are not distracting and are plausible given the context.\n\nScores:\n..... The Accuracy score is α92α.\n..... The Completeness score is β88β.\n..... The Conciseness score is ψ95ψ.\n..... The Relevance score is δ97δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "They rake leaves in a yard, then a boy walks down a sidewalk to another yard. He continues to rake leaves into a trash can with another boy in the new yard. The boys then move to another yard, raking leaves with additional children. The children then load into a vehicle, sitting in the back with rakes and leaf blowers.",
+            "scores": {
+              "accuracy": 70,
+              "completeness": 65,
+              "conciseness": 75,
+              "relevance": 70
+            },
+            "media": 70.0,
+            "resposta_llm": "Reasoning:\n\nAccuracy:  \nThe generated caption correctly identifies the main activity—raking leaves in a yard—and the transition to loading into a vehicle. However, it introduces some inaccuracies: the reference captions mention two girls putting leaves into a container, but the generated caption focuses on boys and omits the girls. The generated caption also describes a boy walking down a sidewalk to another yard and multiple yard transitions, which are not mentioned in the reference captions. Additionally, it mentions leaf blowers in the vehicle, which is not referenced in the human captions. The presence of a man and two boys inside a car is noted in the references, but the generated caption only mentions children loading into a vehicle. Overall, the main actions are captured, but there are some errors and hallucinations.\n\nCompleteness:  \nThe generated caption covers the raking of leaves, the movement to a vehicle, and the involvement of children. However, it omits the involvement of girls in the leaf collection and the specific detail of people sitting in a mini van. It also does not mention the use of leaf rakes or the plastic container/garbage can as explicitly as the references do. The generated caption adds details about moving between multiple yards and the presence of leaf blowers, which are not in the references. It captures the general flow but misses some significant elements.\n\nConciseness:  \nThe generated caption is fairly clear and avoids unnecessary repetition, but it introduces extra details (multiple yard transitions, leaf blowers) that are not relevant to the core events described in the references. The description is somewhat verbose and could be more succinct by focusing on the main actions.\n\nRelevance:  \nMost of the generated caption is relevant to the overall activity of raking leaves and loading into a vehicle, but the mention of leaf blowers and repeated yard transitions are not supported by the reference captions and detract from the relevance. The focus on boys rather than girls also reduces relevance to the actual content.\n\nScores:\n..... The Accuracy score is α70α.\n..... The Completeness score is β65β.\n..... The Conciseness score is ψ75ψ.\n..... The Relevance score is δ70δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "two men are raking leaves in a yard . a man walks up to the side of the lawn . a man rakes leaves from a tree . they are sitting down in the car .",
+            "scores": {
+              "accuracy": 55,
+              "completeness": 50,
+              "conciseness": 75,
+              "relevance": 60
+            },
+            "media": 60.0,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption describes \"two men raking leaves in a yard,\" \"a man walks up to the side of the lawn,\" \"a man rakes leaves from a tree,\" and \"they are sitting down in the car.\" The reference captions indicate that a group of people (not just men) are raking leaves, with two girls specifically putting leaves into a container/garbage can, and that people (including a man and two boys) are inside a car/mini van. The generated caption incorrectly limits the participants to men, omits mention of the girls and their actions, and does not specify the container/garbage can. The action \"a man rakes leaves from a tree\" is not supported by the references, which mention raking leaves from the ground. The phrase \"they are sitting down in the car\" is somewhat accurate but lacks specificity (e.g., man and two boys, or people in a mini van). There are some factual inaccuracies and omissions.\n\nCompleteness: The generated caption misses several key elements: the involvement of girls, the act of putting leaves into a container/garbage can, and the group nature of the activity. It also omits the detail that people are cleaning both the front and back yard, and the presence of a mini van. The caption does not mention the boys or the man inside the car, nor does it capture the full scope of the yard cleaning activity. The mention of \"a man rakes leaves from a tree\" is not present in the references and does not add to completeness.\n\nConciseness: The generated caption is fairly concise, with no unnecessary repetition. However, it includes some irrelevant or unsupported details (\"a man rakes leaves from a tree\") and lacks clarity about the participants and their actions. The structure is somewhat fragmented, but overall, it is succinct.\n\nRelevance: The caption is mostly relevant to the video content, focusing on raking leaves and sitting in a car. However, the incorrect focus on \"two men\" and the unsupported action of raking leaves from a tree detract from relevance. The omission of the girls and their actions, as well as the group nature of the activity, reduces its pertinence to the overall video content.\n\nScores:\n..... The Accuracy score is α55α.\n..... The Completeness score is β50β.\n..... The Conciseness score is ψ75ψ.\n..... The Relevance score is δ60δ.",
+            "valido": true
+          }
+        }
+      }
+    ],
+    "v_rmoa-Ffel2k": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            0,
+            23.17
+          ],
+          [
+            21.75,
+            76.11
+          ],
+          [
+            76.11,
+            94.55
+          ]
+        ],
+        "ground_truth": [
+          "A man is seen speaking to the camera and stepping on a piece of exercise equipment.  The man then uses the machine while speaking to the camera and pointing to his legs as well as water.  He steps off the machine while pointing to the camera and then walks away.",
+          "This man is in the public gym to workout and he is standing on the treadmill just walking.  There is also other people walking around farther around behind him.  After a while, he steps off of the treadmill and says his last words to his viewers."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "A man in gym attire approaches an elliptical machine and begins his workout, gripping the handles and starting to move. He then steadily increases his pace, moving his arms and legs in sync as he continues his elliptical workout. He maintains a steady rhythm on the elliptical, focusing on his form as he continues his workout routine.",
+            "scores": {
+              "accuracy": 30,
+              "completeness": 25,
+              "conciseness": 80,
+              "relevance": 35
+            },
+            "media": 42.5,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy:  \nThe generated caption describes a man in gym attire approaching an elliptical machine, gripping the handles, and starting his workout, focusing on his form and maintaining a steady rhythm. However, the reference captions clearly state that the man is using a treadmill, not an elliptical machine. The generated caption also omits the fact that the man is speaking to the camera, pointing to his legs and water, and stepping off the machine to say his last words. The description of increasing pace and focusing on form is not supported by the reference captions. Therefore, the generated caption contains significant inaccuracies regarding the equipment used and the actions performed.\n\nCompleteness:  \nThe generated caption fails to mention several key elements: the man speaking to the camera, pointing to his legs and water, stepping off the machine, and interacting with viewers. It also omits the presence of other people in the gym and the scene transitions (approaching, using, stepping off, and walking away). The caption focuses solely on the workout aspect and ignores the communicative and demonstrative actions that are central to the video as described in the references.\n\nConciseness:  \nThe generated caption is clear and succinct, describing the workout process without unnecessary repetition or irrelevant details. However, it does repeat the idea of maintaining a steady rhythm and focusing on form, which could be condensed. The main issue is not verbosity but omission of key content.\n\nRelevance:  \nWhile the generated caption is relevant to a generic gym workout scenario, it is not fully relevant to the specific content of the video as described in the reference captions. It misidentifies the equipment and omits the communicative actions, which are significant to the video. The focus on the elliptical workout is not pertinent to the actual events.\n\nScores:\n..... The Accuracy score is α30α.\n..... The Completeness score is β25β.\n..... The Conciseness score is ψ80ψ.\n..... The Relevance score is δ35δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "The woman is exercising on an elliptical machine in a gym. She then switches to a stationary bike, continuing her workout with a change of exercise equipment. She then moves to weight training, lifting dumbbells in the gym with focused intensity.",
+            "scores": {
+              "accuracy": 10,
+              "completeness": 10,
+              "conciseness": 40,
+              "relevance": 10
+            },
+            "media": 17.5,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption contains several inaccuracies. First, it describes a \"woman\" as the subject, whereas both reference captions clearly state the subject is a \"man.\" Second, the generated caption mentions the use of an elliptical machine, stationary bike, and weight training with dumbbells, none of which are referenced in the reference captions. The reference captions consistently describe the man using a treadmill, speaking to the camera, pointing to his legs and water, and then stepping off and walking away. There are no mentions of switching equipment or weight training. Therefore, the generated caption is highly inaccurate regarding both the subject and the actions.\n\nCompleteness: The generated caption omits all the significant events described in the reference captions, such as the man speaking to the camera, pointing to his legs and water, stepping off the treadmill, and walking away. It also fails to mention the presence of other people in the gym, which is noted in one reference caption. Instead, it invents unrelated actions and equipment. Thus, the caption is not complete in covering the essential content.\n\nConciseness: While the generated caption is clear and not overly verbose, its conciseness is undermined by the inclusion of irrelevant and incorrect details. It describes multiple actions and equipment that do not occur in the video, making it unnecessarily detailed in the wrong direction. However, it does not repeat itself or add extraneous filler, so it is not excessively wordy.\n\nRelevance: The generated caption is largely irrelevant to the actual content of the video. It describes a different subject (woman instead of man), different equipment (elliptical, bike, dumbbells instead of treadmill), and different actions (switching equipment, weight training instead of speaking to the camera, pointing, and walking away). It fails to capture the essence of the video as described in the reference captions.\n\nScores:\n..... The Accuracy score is α10α.\n..... The Completeness score is β10β.\n..... The Conciseness score is ψ40ψ.\n..... The Relevance score is δ10δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "a woman is seen speaking to the camera while standing on a piece of exercise equipment . she continues working on the machine and ends by turning on the machine . she moves back and fourth on the ground while the camera pans around .",
+            "scores": {
+              "accuracy": 30,
+              "completeness": 25,
+              "conciseness": 60,
+              "relevance": 35
+            },
+            "media": 37.5,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption contains a significant error: it describes the main subject as \"a woman,\" whereas both reference captions clearly state the subject is a man. This is a major inaccuracy. Additionally, the generated caption mentions \"turning on the machine,\" which is not referenced in either reference caption, nor is \"moving back and forth on the ground\" or \"the camera pans around.\" The generated caption omits the fact that the man points to his legs and water, and that he steps off the machine and walks away. These inaccuracies and omissions significantly reduce the accuracy score.\n\nCompleteness: The generated caption fails to mention several key actions described in the reference captions: the man points to his legs and water, steps off the machine, says his last words to viewers, and walks away. It also omits the presence of other people in the gym, which is mentioned in one reference. The generated caption does mention speaking to the camera and using the exercise equipment, but misses several important details and actions, so completeness is low.\n\nConciseness: The generated caption is relatively concise and does not include excessive or repetitive information. However, it does include some irrelevant or inaccurate details (\"turning on the machine,\" \"moving back and forth on the ground,\" \"camera pans around\") that are not supported by the reference captions. This detracts from conciseness, but the caption is not overly verbose.\n\nRelevance: The generated caption is mostly relevant to the general context (someone using exercise equipment and speaking to the camera), but the errors (wrong gender, actions not present in the references) and inclusion of irrelevant details (camera pans, turning on the machine) reduce its relevance. It does not capture the main events and omits significant elements, so relevance is moderate to low.\n\nScores:\n..... The Accuracy score is α30α.\n..... The Completeness score is β25β.\n..... The Conciseness score is ψ60ψ.\n..... The Relevance score is δ35δ.",
+            "valido": true
+          }
+        }
+      }
+    ],
+    "v_bXdq2zI1Ms0": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            0,
+            10.23
+          ],
+          [
+            10.6,
+            39.84
+          ],
+          [
+            38.01,
+            73.1
+          ]
+        ],
+        "ground_truth": [
+          "A man is seen speaking to the camera and pans out into more men standing behind him.  The first man then begins performing martial arts moves while speaking to he camera.  He continues moving around and looking to the camera.",
+          "Three men are standing on a mat.  The man in front begins to do karate on the mat.  He gets down on the ground and flips around."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "The video introduces attack and escape combinations, listing movements such as Queixada, Esquiva de frente, and Fake Meia lua de compasso. Mestre Barrão then demonstrates the proper technique for executing one of the attack and escape movements in practice. He then smoothly transitions from a low esquiva position to a lateral movement, finishing by rising back to a standing stance.",
+            "scores": {
+              "accuracy": 55,
+              "completeness": 60,
+              "conciseness": 75,
+              "relevance": 60
+            },
+            "media": 62.5,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption describes a demonstration of attack and escape combinations, specifically naming movements from Capoeira (Queixada, Esquiva de frente, Fake Meia lua de compasso) and mentions Mestre Barrão demonstrating technique. However, the reference captions do not mention Capoeira, Mestre Barrão, or specific named movements. Instead, they describe a man (not named) speaking to the camera, then performing martial arts moves (karate, flipping, moving around) with other men standing behind him. The generated caption introduces specific terminology and a named instructor that are not present in the reference captions, which is a significant hallucination. The general idea of martial arts demonstration is correct, but the specifics are inaccurate.\n\nCompleteness: The generated caption covers the demonstration of martial arts moves and transitions, which aligns with the reference captions' description of a man performing moves and flipping on a mat. However, it omits the initial scene of the man speaking to the camera and the presence of other men standing behind him, as well as the dynamic of the man moving around and looking at the camera. It also does not mention the mat or the ground, which are referenced. The caption focuses on technique demonstration but misses some key contextual elements.\n\nConciseness: The generated caption is clear and succinct, describing the demonstration and transitions without unnecessary repetition. However, it introduces specific terminology and names that are not relevant to the reference captions, which could be considered unnecessary detail. Still, it is not overly verbose.\n\nRelevance: The generated caption is mostly relevant to the general theme of martial arts demonstration, but the inclusion of Capoeira-specific terms and the name Mestre Barrão is not supported by the reference captions. This makes parts of the caption less relevant to the actual content described.\n\nScores:\nThe Accuracy score is α55α.\nThe Completeness score is β60β.\nThe Conciseness score is ψ75ψ.\nThe Relevance score is δ60δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "The title \"Attack and Escape Combinations\" appears with a list of techniques. Mestre Barrão introduces himself, then demonstrates a capoeira technique with his students in a training session. He then demonstrates a capoeira escape technique, crouching, kicking, and balancing with his arms outstretched.",
+            "scores": {
+              "accuracy": 55,
+              "completeness": 60,
+              "conciseness": 75,
+              "relevance": 60
+            },
+            "media": 62.5,
+            "resposta_llm": "Reasoning:\n\nAccuracy: The generated caption describes Mestre Barrão introducing himself and demonstrating capoeira techniques with students, including escape moves, crouching, kicking, and balancing. However, the reference captions do not mention capoeira or Mestre Barrão; instead, they describe a man performing martial arts (karate) moves, flipping, and speaking to the camera, with other men standing behind him. The generated caption misidentifies the martial art (capoeira vs. karate) and the person (Mestre Barrão vs. unnamed man), which is a significant error. The actions described (crouching, kicking, balancing) are somewhat consistent with martial arts, but the specific identification is inaccurate.\n\nCompleteness: The generated caption covers the presence of multiple people, the demonstration of techniques, and some dynamic actions (crouching, kicking, balancing). However, it omits the detail that the man speaks to the camera, pans out to show more men, and flips around on the mat. It also adds details not present in the references (title, list of techniques, specific capoeira moves). The completeness is moderate, as it captures some but not all key actions.\n\nConciseness: The generated caption is clear and succinct, describing the sequence of events without unnecessary repetition. However, it includes some extraneous details (title, list of techniques) that are not mentioned in the reference captions and may not be essential to the core content. Overall, it is reasonably concise.\n\nRelevance: The generated caption is mostly relevant to the video content, describing martial arts demonstrations and group training. However, the misidentification of the martial art and the instructor, as well as the inclusion of the title and list of techniques, detracts from its relevance. It does not include irrelevant information, but the errors in identification reduce its pertinence.\n\nScores:\n..... The Accuracy score is α55α.\n..... The Completeness score is β60β.\n..... The Conciseness score is ψ75ψ.\n..... The Relevance score is δ60δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "a woman is talking in the camera , showing how to clean a sink . she is shown doing a tutorial on how to do a moves . she does some karate moves as she does some karate moves .",
+            "scores": {
+              "accuracy": 15,
+              "completeness": 20,
+              "conciseness": 10,
+              "relevance": 15
+            },
+            "media": 15.0,
+            "resposta_llm": "Detailed Reasoning:\n\nAccuracy: The generated caption contains several inaccuracies. First, it incorrectly identifies the main subject as a woman, whereas both reference captions clearly state the main subject is a man. Second, it mentions \"showing how to clean a sink,\" which is not present in any reference caption and is a hallucination. The caption does mention karate moves, which is accurate, but the errors in subject and irrelevant actions significantly reduce its accuracy.\n\nCompleteness: The generated caption omits several key elements. It does not mention the presence of other men standing behind the main subject, nor does it describe the mat or the flipping actions. It also fails to capture the dynamic of the man speaking to the camera and the scene transitions (panning out to more men). The only aspect it covers is the karate moves, but even this is muddled by irrelevant details.\n\nConciseness: The caption is not concise. It repeats \"she does some karate moves as she does some karate moves,\" which is redundant. It also includes unnecessary and irrelevant information about cleaning a sink and a tutorial, which is not part of the video. The repetition and irrelevant details detract from clarity and succinctness.\n\nRelevance: The caption is largely irrelevant to the actual video content. The mention of cleaning a sink and a tutorial is not related to the events described in the reference captions. The only relevant part is the mention of karate moves, but this is overshadowed by the irrelevant and incorrect information.\n\n..... The Accuracy score is α15α.\n..... The Completeness score is β20β.\n..... The Conciseness score is ψ10ψ.\n..... The Relevance score is δ15δ.",
+            "valido": true
+          }
+        }
+      }
+    ],
+    "v_-UwqKYkkKlU": [
+      {
+        "segment": "full_video",
+        "timestamps": [
+          [
+            0,
+            9.28
+          ],
+          [
+            10.56,
+            30.08
+          ],
+          [
+            32,
+            64
+          ]
+        ],
+        "ground_truth": [
+          "A woman is talking inside a gym.  She rides on a recumbent bike.  She is then shown going between spinning and lifting weights.",
+          "A woman comes onto the screen and introduces a fitness video.  She shows herself teaching a spin class with several other students.  She also shows herself teaching a core strength exercise.  The video ends with the closing captions shown on the screen."
+        ],
+        "avaliacoes": {
+          "GPT-4.1": {
+            "caption": "She stands in the gym, ready to begin the workout, wearing exercise gear and a headset microphone. She then climbs onto a stationary bike and begins pedaling, demonstrating the cycling workout for the class. Next, she demonstrates a lunge with dumbbells, then returns to the bike to continue cycling and wipe her face.",
+            "scores": {
+              "accuracy": 90,
+              "completeness": 75,
+              "conciseness": 95,
+              "relevance": 95
+            },
+            "media": 88.75,
+            "resposta_llm": "Reasoning:\n\nAccuracy:  \nThe generated caption accurately describes the main subject (a woman in a gym, wearing exercise gear and a headset microphone), and her actions (climbing onto a stationary bike, pedaling, demonstrating cycling, demonstrating a lunge with dumbbells, returning to the bike, and wiping her face). These actions are consistent with the reference captions, which mention spinning, lifting weights, and teaching a core strength exercise. The mention of a headset microphone and wiping her face are not present in the reference captions but are plausible details for a fitness instructor. There are no major hallucinations or errors.\n\nCompleteness:  \nThe generated caption covers the key events: the woman is in the gym, she uses a stationary bike, demonstrates a lunge with dumbbells, and cycles again. However, it omits some elements from the reference captions, such as the presence of other students in the spin class, the introduction of the fitness video, and the closing captions. It also does not explicitly mention teaching or core strength exercises, though the lunge with dumbbells could be interpreted as such. The caption is missing the group aspect and the explicit teaching context, which are significant in the reference captions.\n\nConciseness:  \nThe generated caption is clear and succinct, describing the sequence of actions without unnecessary repetition or irrelevant details. The inclusion of \"wearing exercise gear and a headset microphone\" is relevant and concise, as is the description of the workout actions. The caption does not ramble or include extraneous information.\n\nRelevance:  \nAll details in the generated caption pertain to the video content as described in the reference captions. The focus remains on the woman, her workout actions, and her role as an instructor. The mention of the headset microphone and wiping her face are relevant to the context of a fitness class. There are no irrelevant or off-topic details.\n\nScores:\n..... The Accuracy score is α90α.\n..... The Completeness score is β75β.\n..... The Conciseness score is ψ95ψ.\n..... The Relevance score is δ95δ.",
+            "valido": true
+          },
+          "LLaMA": {
+            "caption": "She stands in a gym, wearing a blue tank top and black pants, ready to exercise. She then participates in a spinning class, pedaling intensely with others around her. She next performs strength training with dumbbells, kneeling and lifting weights overhead before resuming cycling.",
+            "scores": {
+              "accuracy": 92,
+              "completeness": 85,
+              "conciseness": 95,
+              "relevance": 93
+            },
+            "media": 91.25,
+            "resposta_llm": "Reasoning:\n\nAccuracy: The generated caption accurately describes the main subject (a woman), her location (gym), and her activities (spinning class, strength training with dumbbells, cycling). The details about her attire (blue tank top and black pants) are not mentioned in the reference captions but are plausible and not incorrect. The caption does not hallucinate any major events or entities, and the actions described (spinning, strength training, cycling) match the reference captions. The only minor issue is the explicit mention of \"kneeling and lifting weights overhead,\" which is not specified in the references, but this is a reasonable interpretation of strength training with dumbbells.\n\nCompleteness: The generated caption covers the essential events: the woman is in a gym, participates in a spinning class with others, and performs strength training. It also notes a transition back to cycling. However, it omits the introductory aspect (the woman introducing a fitness video or talking), the presence of students in the spin class is only implied (\"others around her\"), and the closing captions are not mentioned. The core strength exercise is described as \"strength training with dumbbells,\" which may or may not fully capture the reference's \"core strength exercise.\" Overall, most key actions are included, but some context and transitions are missing.\n\nConciseness: The generated caption is clear and succinct, describing the sequence of events without unnecessary repetition or irrelevant details. The mention of attire is a bit extra, but it does not detract from the overall clarity. The description flows logically and is easy to follow.\n\nRelevance: The caption is highly relevant to the video content, focusing on the woman's activities in the gym, spinning class, and strength training. It does not include irrelevant information or questions. The only minor issue is the inclusion of specific attire, which is not referenced in the human captions, but this does not significantly affect relevance.\n\nScores:\n..... The Accuracy score is α92α.\n..... The Completeness score is β85β.\n..... The Conciseness score is ψ95ψ.\n..... The Relevance score is δ93δ.",
+            "valido": true
+          },
+          "SkimCap": {
+            "caption": "a woman is seen speaking to the camera while standing in front of a large group of people . she bends down and puts on a bike while speaking to the camera . she then lifts the bar up and down while still speaking to the camera .",
+            "scores": {
+              "accuracy": 80,
+              "completeness": 65,
+              "conciseness": 85,
+              "relevance": 75
+            },
+            "media": 76.25,
+            "resposta_llm": "Reasoning:\n\nAccuracy: The generated caption correctly identifies a woman speaking to the camera, which matches both reference captions. It also mentions her putting on a bike (presumably getting onto a stationary bike), which aligns with the references describing her riding a recumbent bike and teaching a spin class. The caption then says she \"lifts the bar up and down,\" which is a reasonable paraphrase for lifting weights or teaching a core strength exercise, though \"bar\" is less precise than \"weights\" or \"core strength exercise.\" However, the generated caption says she is \"standing in front of a large group of people,\" which is only partially supported: reference 2 mentions her teaching a spin class with several students, but not necessarily a \"large group\" in every scene. The generated caption does not hallucinate major events, but its description of \"putting on a bike\" is awkward and less accurate than \"riding\" or \"teaching a spin class.\" Overall, the accuracy is good but not perfect due to imprecise wording.\n\nCompleteness: The generated caption covers the main events: the woman speaking, getting onto a bike, and lifting weights. However, it omits some significant elements: the introduction of a fitness video, teaching a spin class with several students, teaching a core strength exercise, and the closing captions. It also does not mention scene transitions or the fact that she is teaching, rather than just performing exercises. The caption focuses on her actions but misses the broader context and some key details, so completeness is moderate.\n\nConciseness: The generated caption is clear and succinct, describing the main actions without unnecessary repetition. However, the phrase \"she bends down and puts on a bike\" is awkward and could be more concise as \"she gets onto a bike.\" The repeated mention of \"speaking to the camera\" is slightly redundant, but overall, the caption is not overly verbose.\n\nRelevance: The generated caption is relevant to the video content, focusing on the woman, her actions, and the gym/fitness context. It does not include irrelevant information or questions. However, it misses some relevant details (such as teaching, the presence of students, and closing captions), so relevance is good but not perfect.\n\nScores:\n..... The Accuracy score is α80α.\n..... The Completeness score is β65β.\n..... The Conciseness score is ψ85ψ.\n..... The Relevance score is δ75δ.",
+            "valido": true
+          }
+        }
+      }
+    ]
+  }
+}

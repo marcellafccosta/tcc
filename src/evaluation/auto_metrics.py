@@ -27,6 +27,7 @@ import argparse
 import json
 import os
 import sys
+import re
 import tempfile
 import numpy as np
 from collections import Counter
@@ -82,8 +83,9 @@ except ImportError:
 # ══════════════════════════════════════════════════════════════
 
 def parse_sent(text: str) -> list:
-  """Tokenização simples: lowercase + split (igual ao original)."""
-  return text.strip().lower().split()
+    """Tokenização idêntica ao SkimCap/ANETcaptions: remove tudo que não é letra."""
+    res = re.sub('[^a-zA-Z]', ' ', text)
+    return res.strip().lower().split()
 
 def to_paragraph(sentences) -> str:
   """Junta lista de sentenças em parágrafo único."""
@@ -99,31 +101,36 @@ def _ngrams(tokens: list, n: int) -> list:
   return [tuple(tokens[i: i + n]) for i in range(len(tokens) - n + 1)]
 
 def compute_r4(captions: list) -> float:
-  """
-  R@4 = proporção de 4-gramas (distintos) que aparece em
-        mais de um segmento do mesmo vídeo.
+    """
+    R@4 (Repetition-4) — réplica EXATA do SkimCap / densevid_eval.
+        R@4 = sum(max(count(g)-1, 0)) / sum(count(g))   sobre 4-gramas
+    Acumula os 4-gramas de TODOS os segmentos do vídeo nos mesmos
+    contadores (repetição global no parágrafo). ↓ melhor.
+    Tokenização idêntica ao SkimCap: corta no primeiro ' .',
+    troca ',' por espaço, colapsa espaços, split por espaço.
+    """
+    fourgrams: dict = {}
 
-  R@4 = 0  →  nenhum 4-grama repetido entre segmentos  (ideal)
-  R@4 = 1  →  todos os 4-gramas repetidos  (muito repetitivo)
+    for sent in captions:
+        if not sent:
+            continue
+        # Tokenização do SkimCap
+        s = sent.split(' .')[0]
+        s = s.replace(',', ' ')
+        while '  ' in s:
+            s = s.replace('  ', ' ')
+        words = s.split(' ')
 
-  Mede concisão: legendas de segmentos distintos devem
-  descrever conteúdos diferentes.
-  """
-  captions = [c for c in captions if c and c.strip()]
-  if len(captions) <= 1:
-      return 0.0
+        # Acumula 4-gramas COM multiplicidade
+        for i in range(len(words) - 3):
+            g = '%s_%s_%s_%s' % (words[i], words[i+1], words[i+2], words[i+3])
+            fourgrams[g] = fourgrams.get(g, 0) + 1
 
-  ngrams_per_seg = [set(_ngrams(parse_sent(c), 4)) for c in captions]
-
-  # Quantos segmentos distintos contêm cada 4-grama
-  counts: Counter = Counter()
-  for ng_set in ngrams_per_seg:
-      for ng in ng_set:
-          counts[ng] += 1
-
-  total    = len(counts)
-  repeated = sum(1 for v in counts.values() if v > 1)
-  return repeated / total if total > 0 else 0.0
+    total = float(sum(fourgrams.values()))
+    if total == 0:
+        return 0.0
+    repeated = float(sum(max(c - 1, 0) for c in fourgrams.values()))
+    return repeated / total
 
 # ══════════════════════════════════════════════════════════════
 # IMPLEMENTAÇÕES FALLBACK (sem pycocoevalcap)
@@ -356,11 +363,11 @@ class AvaliacaoAutomatica:
       # ── R@4 (sempre disponível) ───────────────────────────
       if self.verbose:
           print("  🔍 Computing R@4...")
-      r4_scores = [
-          compute_r4(self.predictions_raw.get(v, []))
-          for v in gt_vid_ids
-      ]
+      r4_scores = [compute_r4(self.predictions_raw.get(v, [])) for v in gt_vid_ids]
       output["R@4"] = float(np.mean(r4_scores))
+
+    # ── Converte todas as métricas para a escala 0–100 ────
+      output = {k: round(v * 100, 4) for k, v in output.items()}
 
       n_scored = sum(1 for v in gt_vid_ids if v in self.prediction)
       print(f"\n  📊 Vídeos avaliados : {n_scored} / {len(gt_vid_ids)}")
@@ -371,7 +378,7 @@ class AvaliacaoAutomatica:
   def print_results(self):
       SEP = "─" * 48
       print(f"\n{SEP}")
-      print(f"  {'MÉTRICA':<14} {'SCORE':>8}   {'× 100':>8}")
+      print(f"  {'MÉTRICA':<22} {'SCORE (0–100)':>14}")
       print(SEP)
 
       # Ordem de exibição preferencial
@@ -385,13 +392,12 @@ class AvaliacaoAutomatica:
       shown = set()
       for key, label in order:
           if key in self.scores:
-              v = self.scores[key]
-              print(f"  {label:<22} {v:>8.4f}   {100*v:>7.2f}%")
+              print(f"  {label:<22} {self.scores[key]:>14.2f}")
               shown.add(key)
 
       for key, v in self.scores.items():
           if key not in shown:
-              print(f"  {key:<22} {v:>8.4f}   {100*v:>7.2f}%")
+              print(f"  {key:<22} {v:>14.2f}")
 
       print(SEP + "\n")
 
@@ -399,11 +405,11 @@ class AvaliacaoAutomatica:
       """Detalhe por vídeo no modo verbose."""
       print("  R@4 por vídeo:")
       for vid in sorted(self.predictions_raw):
-          score  = compute_r4(self.predictions_raw[vid])
+          score  = compute_r4(self.predictions_raw[vid]) * 100
           n_segs = len([c for c in self.predictions_raw[vid] if c])
           in_gt  = any(vid in gt for gt in self.ground_truths)
           marker = "✓" if in_gt else "✗ (fora do GT)"
-          print(f"    {vid}  segs={n_segs}  R@4={score:.3f}  {marker}")
+          print(f"    {vid}  segs={n_segs}  R@4={score:.2f}  {marker}")
       print()
 
 # ══════════════════════════════════════════════════════════════
@@ -477,7 +483,7 @@ def _imprimir_tabela_comparacao(resultados: dict) -> None:
             linha = f"  {label:<22}"
             for m in modelos:
                 v = resultados[m].get(key)
-                linha += f" {v * 100:>{col}.2f}%" if v is not None else f" {'—':>{col}}"
+                linha += f" {v:>{col}.2f}" if v is not None else f" {'—':>{col}}"
             print(linha)
             mostradas.add(key)
 
@@ -486,7 +492,7 @@ def _imprimir_tabela_comparacao(resultados: dict) -> None:
         linha = f"  {key:<22}"
         for m in modelos:
             v = resultados[m].get(key)
-            linha += f" {v * 100:>{col}.2f}%" if v is not None else f" {'—':>{col}}"
+            linha += f" {v:>{col}.2f}" if v is not None else f" {'—':>{col}}"
         print(linha)
 
     print("═" * L + "\n")
@@ -539,75 +545,77 @@ def main(args):
     print("\n" + "=" * 55)
     print("  AVALIAÇÃO AUTOMÁTICA DE LEGENDAS DE VÍDEO")
     print("=" * 55)
-    print(f"  Ground truth: {len(args.references)} arquivo(s)")
+    print(f"  Ground truth: {len(args.references)} arquivo(s)  [multi-referência]")
     print(f"  Modo        : {mode}")
     print("=" * 55)
 
-    # Converte SkimCap uma vez (reutilizado em todos os GTs)
+    # Converte SkimCap uma vez (reutilizado na avaliação)
     skimcap_tmp: str | None = None
     if skimcap_path and Path(skimcap_path).exists():
         skimcap_tmp = _converter_skimcap_para_tmp(skimcap_path)
 
     try:
-        # ── Loop por GT (igual ao llm_eval.py) ───────────────────
-        for gt_file in args.references:
-            sufixo = Path(gt_file).stem  # ex: anet_entities_test_1
+        # ── Multi-referência: TODOS os GTs entram juntos numa só avaliação ──
+        sufixo = "multiref"  # rótulo único de saída (antes era o nome de cada GT)
 
-            print(f"\n{'═'*55}")
-            print(f"  GT: {Path(gt_file).name}")
-            print(f"{'═'*55}")
+        print(f"\n{'═'*55}")
+        print(f"  GTs (multi-ref): {', '.join(Path(g).name for g in args.references)}")
+        print(f"{'═'*55}")
 
-            todos_scores: dict = {}
+        todos_scores: dict = {}
 
-            # Modelo 1
-            out1 = str(out_dir / f"metricas_{label1}_{sufixo}.json")
-            scores1 = _avaliar_e_salvar(
-                gt_files=[gt_file],
-                pred_file=args.predictions,
-                output_path=out1,
+        # Modelo 1
+        out1 = str(out_dir / f"metricas_{label1}_{sufixo}.json")
+        scores1 = _avaliar_e_salvar(
+            gt_files=args.references,
+            pred_file=args.predictions,
+            output_path=out1,
+            verbose=args.verbose,
+            label=label1,
+        )
+        todos_scores[label1] = scores1
+
+        # IDs avaliados no modelo 1 — base para comparação justa entre modelos.
+        # Usa a UNIÃO das referências (igual ao _get_gt_vid_ids interno) ∩ predições.
+        _ref_ids: set | None = None
+        try:
+            _raw, _para = load_predictions(args.predictions)
+            _gt_union: set = set()
+            for _g in args.references:
+                _gt_union |= set(load_ground_truth(_g).keys())
+            _ref_ids = set(_para.keys()) & _gt_union
+        except Exception:
+            pass
+
+        # Modelo 2 (opcional)
+        if predictions2 and Path(predictions2).exists():
+            out2 = str(out_dir / f"metricas_{label2}_{sufixo}.json")
+            todos_scores[label2] = _avaliar_e_salvar(
+                gt_files=args.references,
+                pred_file=predictions2,
+                output_path=out2,
                 verbose=args.verbose,
-                label=label1,
+                label=label2,
+                restrict_ids=_ref_ids,
             )
-            todos_scores[label1] = scores1
 
-            # IDs avaliados no modelo 1 — base para comparação justa
-            _ref_ids: set | None = None
-            try:
-                _raw, _para = load_predictions(args.predictions)
-                _gt = load_ground_truth(gt_file)
-                _ref_ids = set(_para.keys()) & set(_gt.keys())
-            except Exception:
-                pass
+        # SkimCap (opcional)
+        if skimcap_tmp:
+            out_sc = str(out_dir / f"metricas_SkimCap_{sufixo}.json")
+            todos_scores["SkimCap"] = _avaliar_e_salvar(
+                gt_files=args.references,
+                pred_file=skimcap_tmp,
+                output_path=out_sc,
+                verbose=args.verbose,
+                label="SkimCap",
+                restrict_ids=_ref_ids,
+            )
 
-            # Modelo 2 (opcional)
-            if predictions2 and Path(predictions2).exists():
-                out2 = str(out_dir / f"metricas_{label2}_{sufixo}.json")
-                todos_scores[label2] = _avaliar_e_salvar(
-                    gt_files=[gt_file],
-                    pred_file=predictions2,
-                    output_path=out2,
-                    verbose=args.verbose,
-                    label=label2,
-                    restrict_ids=_ref_ids,
-                )
-
-            # SkimCap (opcional)
-            if skimcap_tmp:
-                out_sc = str(out_dir / f"metricas_SkimCap_{sufixo}.json")
-                todos_scores["SkimCap"] = _avaliar_e_salvar(
-                    gt_files=[gt_file],
-                    pred_file=skimcap_tmp,
-                    output_path=out_sc,
-                    verbose=args.verbose,
-                    label="SkimCap",
-                    restrict_ids=_ref_ids,
-                )
-
-            # Tabela comparativa para este GT
-            if len(todos_scores) > 1:
-                _imprimir_tabela_comparacao(todos_scores)
-            else:
-                print()
+        # Tabela comparativa final
+        if len(todos_scores) > 1:
+            _imprimir_tabela_comparacao(todos_scores)
+        else:
+            print()
 
     finally:
         if skimcap_tmp:
@@ -644,7 +652,7 @@ if __name__ == "__main__":
       "-r", "--references",
       type=str, nargs="+",
       default=[DEFAULT_GT_1, DEFAULT_GT_2],
-      help="Arquivo(s) de ground truth (podem ser múltiplos)",
+      help="Arquivo(s) de ground truth (usados como multi-referência)",
   )
   parser.add_argument(
       "-o", "--output",

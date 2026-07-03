@@ -24,19 +24,12 @@ Your caption will be evaluated as part of a concatenated paragraph against these
 • METEOR: Alignment with synonym support → Accuracy + Completeness
 • R@4: 4-gram repetition between segments → Conciseness (lower is better — avoid repeating phrases across segments)
 
-Your caption MUST satisfy the ACCR framework:
-- Accuracy: factual and precise — describe only what is visible
-- Completeness: cover the main action and the subject
-- Conciseness: 1-2 sentences only
-- Relevance: focus on the primary action of THIS segment, not background scenery
-
 RULES:
-- Write 1-2 sentences maximum
+- STRICT LENGTH LIMIT: Your caption for this segment MUST NOT exceed 20 words.
+- Write 1-2 sentences maximum.
 - Use transitional phrases when continuing from context ("then", "next", "he continues", etc.)
-- DO NOT repeat subject or scene information already stated in the context
-- DO NOT prioritize background elements (logos, banners, decorations, audience) over the main action
-- DO NOT invent details you are not certain about
-- DO NOT use markdown formatting
-- DO NOT include frame labels (e.g. "[Frame 1/3]") in your response
+- DO NOT invent details you are not certain about.
+- DO NOT use markdown formatting.
+- DO NOT include frame labels (e.g. "[Frame 1/3]") in your response.
 
 Caption:

@@ -253,20 +253,20 @@ class AvaliadorACCR:
 
 def preparar_para_comparacao(
   resultados_agente: dict,
-  ground_truth_data: dict,
+  ground_truths_list: list,          # ← agora é uma LISTA de dicts GT (val_1, val_2)
   skimcap_data: dict = None,
   modelo_nome: str = "modelo",
   resultados_agente2: dict = None,
   modelo2_nome: str = None
 ) -> dict:
   """
-  Organiza dados de todos os modelos por video_id.
+  Organiza dados de todos os modelos por video_id (multi-referência).
 
   Returns:
       {
           video_id: {
               modelo_nome:  [captions],
-              "ground_truth": [refs],
+              "ground_truth": [paragrafo_gt1, paragrafo_gt2, ...],  # ← LISTA de refs
               "SkimCap":    [captions] | None,
               modelo2_nome: [captions] | None,
               "timestamps": [[start, end], ...]
@@ -285,11 +285,16 @@ def preparar_para_comparacao(
   for video in resultados_agente.get("videos", []):
       vid = video["video_id"]
 
-      captions = [seg["caption"] for seg in video.get("segments", [])]
+      captions   = [seg["caption"]    for seg in video.get("segments", [])]
       timestamps = [seg["timestamps"] for seg in video.get("segments", [])]
 
-      gt = ground_truth_data.get(vid, {})
-      gt_captions = gt.get("sentences", [])
+      # Multi-referência: concatena cada anotação (val_1, val_2) num parágrafo próprio
+      gt_paragrafos = []
+      for gt in ground_truths_list:
+          sentencas = gt.get(vid, {}).get("sentences", [])
+          paragrafo = " ".join(s for s in sentencas if s)
+          if paragrafo:
+              gt_paragrafos.append(paragrafo)
 
       skimcap_captions = None
       _sk_results = (skimcap_data or {}).get("results", {})
@@ -298,7 +303,7 @@ def preparar_para_comparacao(
 
       entry = {
           modelo_nome:    captions,
-          "ground_truth": gt_captions,
+          "ground_truth": gt_paragrafos,     # ← LISTA de parágrafos (uma por anotação)
           "SkimCap":      skimcap_captions,
           "timestamps":   timestamps
       }
@@ -321,62 +326,55 @@ def avaliar_video(
   avaliador: AvaliadorACCR
 ) -> List[dict]:
   """
-  Avalia todos os segmentos de um vídeo para cada modelo.
+  Avalia o vídeo inteiro concatenando todos os segmentos em um parágrafo,
+  comparando contra TODAS as referências (multi-referência) numa só chamada.
 
   Returns:
-      Lista de dicts por segmento com scores ACCR de cada modelo.
+      Lista com um único dict (nível vídeo) com scores ACCR de cada modelo.
   """
-  gt_captions = dados["ground_truth"]
-  timestamps = dados.get("timestamps", [])
-  n_segmentos = len(dados.get(modelos[0], []))
+  gt_paragrafos = dados["ground_truth"]      # já é a lista [para_gt1, para_gt2, ...]
+  timestamps    = dados.get("timestamps", [])
 
   print(f"\n{'='*60}")
-  print(f"Vídeo: {video_id}  |  Segmentos: {n_segmentos}")
+  print(f"Vídeo: {video_id}  |  Avaliação por vídeo completo (multi-ref)")
   print(f"{'='*60}")
+  print(f"  Nº de referências: {len(gt_paragrafos)}")
+  for i, ref in enumerate(gt_paragrafos, 1):
+      print(f"  GT{i}: {ref[:100]}...")
 
-  resultados_segmentos = []
+  resultado_video = {
+      "segment":      "full_video",
+      "timestamps":   timestamps,
+      "ground_truth": gt_paragrafos,          # ← guarda TODAS as refs no JSON
+      "avaliacoes":   {}
+  }
 
-  for i in range(n_segmentos):
-      referencias = [gt_captions[i]] if i < len(gt_captions) else gt_captions or [""]
-      timestamp = timestamps[i] if i < len(timestamps) else [0, 0]
+  for modelo in modelos:
+      captions = dados.get(modelo) or []
+      # Concatena todos os segmentos do modelo em um parágrafo
+      caption_concat = " ".join(c for c in captions if c)
 
-      print(f"\n  Segmento {i} [{timestamp[0]:.1f}s – {timestamp[1]:.1f}s]")
-      if referencias and referencias[0]:
-          print(f"    GT:  {referencias[0][:90]}...")
+      print(f"  [{modelo}] {(caption_concat or '[sem legenda]')[:100]}...")
 
-      resultado_seg = {
-          "segment":    i,
-          "timestamps": timestamp,
-          "ground_truth": referencias,
-          "avaliacoes": {}
+      # Passa TODAS as referências de uma vez ao avaliador
+      avaliacao = avaliador.avaliar_segmento(caption_concat or "", gt_paragrafos)
+      resultado_video["avaliacoes"][modelo] = {
+          "caption": caption_concat,
+          **avaliacao
       }
 
-      for modelo in modelos:
-          captions = dados.get(modelo) or []
-          caption = captions[i] if i < len(captions) else None
+      s = avaliacao["scores"]
+      valido = "✓" if avaliacao["valido"] else "⚠"
+      print(
+          f"    {valido} "
+          f"Acc:{s['accuracy']}  "
+          f"Comp:{s['completeness']}  "
+          f"Conc:{s['conciseness']}  "
+          f"Rel:{s['relevance']}  "
+          f"→ Média:{avaliacao['media']:.1f}"
+      )
 
-          print(f"    [{modelo}] {(caption or '[sem legenda]')[:80]}...")
-
-          avaliacao = avaliador.avaliar_segmento(caption or "", referencias)
-          resultado_seg["avaliacoes"][modelo] = {
-              "caption": caption,
-              **avaliacao
-          }
-
-          s = avaliacao["scores"]
-          valido = "✓" if avaliacao["valido"] else "⚠"
-          print(
-              f"      {valido} "
-              f"Acc:{s['accuracy']}  "
-              f"Comp:{s['completeness']}  "
-              f"Conc:{s['conciseness']}  "
-              f"Rel:{s['relevance']}  "
-              f"→ Média:{avaliacao['media']:.1f}"
-          )
-
-      resultados_segmentos.append(resultado_seg)
-
-  return resultados_segmentos
+  return [resultado_video]
 
 # ─────────────────────────────────────────────────────────────────
 # Relatório consolidado
@@ -557,9 +555,9 @@ def main(args=None):
       args.skimcap if args and args.skimcap
       else os.path.join(BASE, "../../data/baselines/greedy_pred_test.json")
   )
-  MODELO_NOME    = args.modelo_nome if args and hasattr(args, "modelo_nome") else "Modelo1"
+  MODELO_NOME     = args.modelo_nome if args and hasattr(args, "modelo_nome") else "Modelo1"
   INCLUIR_SKIMCAP = bool(args and args.skimcap)
-  OUTPUT_DIR     = args.output_dir if args and hasattr(args, "output_dir") else os.path.join(BASE, "../../output/metrics/accr")
+  OUTPUT_DIR      = args.output_dir if args and hasattr(args, "output_dir") else os.path.join(BASE, "../../output/metrics/accr")
   os.makedirs(OUTPUT_DIR, exist_ok=True)
   ARQUIVO_AGENTE2 = (
       args.predictions2
@@ -586,15 +584,16 @@ def main(args=None):
       resultados_agente2 = carregar_json(ARQUIVO_AGENTE2)
       print(f"\n2. ✓ Segundo modelo carregado ({MODELO2_NOME})")
 
-  # 3. Ground Truth — avalia separadamente para cada arquivo GT
-  print("\n3. Carregando Ground Truths...")
-  ground_truths = {}
+  # 3. Ground Truths — carregados JUNTOS como multi-referência
+  print("\n3. Carregando Ground Truths (multi-referência)...")
+  ground_truths_list = []
   for arquivo_gt in ARQUIVOS_GT:
       if not os.path.exists(arquivo_gt):
           print(f"   ✗ Arquivo não encontrado: {arquivo_gt}")
           return
-      ground_truths[os.path.basename(arquivo_gt)] = carregar_json(arquivo_gt)
+      ground_truths_list.append(carregar_json(arquivo_gt))
       print(f"   ✓ {os.path.basename(arquivo_gt)} carregado")
+  print(f"   → {len(ground_truths_list)} referência(s) por vídeo")
 
   # 4. SkimCap
   skimcap = None
@@ -618,124 +617,126 @@ def main(args=None):
   if MODELO2_NOME:
       modelos.append(MODELO2_NOME)
   if incluir_skimcap:
-      modelos.append("SkimCap")  # chave usada em preparar_para_comparacao
+      modelos.append("SkimCap")
 
-  # 6. Avaliação separada por GT
-  for nome_gt, ground_truth in ground_truths.items():
-      sufixo = os.path.splitext(nome_gt)[0]  # ex: anet_entities_test_1
+  # 6. Avaliação única com multi-referência (sem loop por GT)
+  sufixo = "multiref"
 
-      print(f"\n{'='*60}")
-      print(f"GT: {nome_gt}")
-      print(f"{'='*60}")
+  print(f"\n{'='*60}")
+  print(f"GT: multi-referência ({len(ground_truths_list)} anotações)")
+  print(f"{'='*60}")
 
-      print("\n6. Preparando dados...")
-      dados = preparar_para_comparacao(
-          resultados_agente, ground_truth, skimcap,
-          modelo_nome=MODELO_NOME,
-          resultados_agente2=resultados_agente2,
-          modelo2_nome=MODELO2_NOME
+  print("\n6. Preparando dados...")
+  dados = preparar_para_comparacao(
+      resultados_agente, ground_truths_list, skimcap,
+      modelo_nome=MODELO_NOME,
+      resultados_agente2=resultados_agente2,
+      modelo2_nome=MODELO2_NOME
+  )
+  print(f"   ✓ {len(dados)} vídeos preparados")
+
+  nome_saida      = os.path.join(OUTPUT_DIR, f"accr_predictions_{sufixo}.json")
+  nome_checkpoint = os.path.join(OUTPUT_DIR, f"accr_checkpoint_{sufixo}.json")
+
+  # Retoma checkpoint anterior se existir
+  todos_resultados = {}
+  if os.path.exists(nome_checkpoint):
+      with open(nome_checkpoint, "r", encoding="utf-8") as f:
+          todos_resultados = json.load(f)
+      print(f"\n7. ♻ Checkpoint encontrado: {len(todos_resultados)} vídeo(s) já avaliado(s). Retomando...")
+  else:
+      print("\n7. Avaliando vídeos com ACCR...")
+
+  for video_id, dados_video in dados.items():
+      if video_id in todos_resultados:
+          print(f"   ⏭ {video_id} já avaliado (checkpoint). Pulando.")
+          continue
+      resultados_video = avaliar_video(video_id, dados_video, modelos, avaliador)
+      todos_resultados[video_id] = resultados_video
+      # Escrita atômica do checkpoint após cada vídeo
+      tmp_ck = Path(nome_checkpoint).with_suffix(".json.tmp")
+      tmp_ck.write_text(
+          json.dumps(todos_resultados, ensure_ascii=False, indent=2),
+          encoding="utf-8",
       )
-      print(f"   ✓ {len(dados)} vídeos preparados")
+      tmp_ck.replace(nome_checkpoint)
+      print(f"   💾 Checkpoint salvo ({len(todos_resultados)}/{len(dados)} vídeos)")
 
-      nome_saida      = os.path.join(OUTPUT_DIR, f"accr_predictions_{sufixo}.json")
-      nome_checkpoint = os.path.join(OUTPUT_DIR, f"accr_checkpoint_{sufixo}.json")
+  print("\n8. Gerando relatório...")
+  relatorio = gerar_relatorio(todos_resultados, nome_saida, modelos)
 
-      # Retoma checkpoint anterior se existir
-      todos_resultados = {}
-      if os.path.exists(nome_checkpoint):
-          with open(nome_checkpoint, "r", encoding="utf-8") as f:
-              todos_resultados = json.load(f)
-          print(f"\n7. ♻ Checkpoint encontrado: {len(todos_resultados)} vídeo(s) já avaliado(s). Retomando...")
-      else:
-          print("\n7. Avaliando vídeos com ACCR...")
+  # Salva arquivos por modelo (espelha estrutura das métricas automáticas)
+  for modelo, metricas in relatorio.get("metricas_por_modelo", {}).items():
+      nome_modelo = str(modelo).replace("/", "_")
+      arq_modelo = os.path.join(OUTPUT_DIR, f"accr_{nome_modelo}_{sufixo}.json")
+      tmp_m = Path(arq_modelo).with_suffix(".json.tmp")
+      tmp_m.write_text(
+          json.dumps(metricas, ensure_ascii=False, indent=2),
+          encoding="utf-8",
+      )
+      tmp_m.replace(arq_modelo)
+      print(f"   💾 Salvo: accr_{nome_modelo}_{sufixo}.json")
 
-      for video_id, dados_video in dados.items():
-          if video_id in todos_resultados:
-              print(f"   ⏭ {video_id} já avaliado (checkpoint). Pulando.")
-              continue
-          resultados_video = avaliar_video(video_id, dados_video, modelos, avaliador)
-          todos_resultados[video_id] = resultados_video
-          # Escrita atômica do checkpoint após cada vídeo
-          tmp_ck = Path(nome_checkpoint).with_suffix(".json.tmp")
-          tmp_ck.write_text(
-              json.dumps(todos_resultados, ensure_ascii=False, indent=2),
-              encoding="utf-8",
-          )
-          tmp_ck.replace(nome_checkpoint)
-          print(f"   💾 Checkpoint salvo ({len(todos_resultados)}/{len(dados)} vídeos)")
-
-      print("\n8. Gerando relatório...")
-      relatorio = gerar_relatorio(todos_resultados, nome_saida, modelos)
-
-      # Salva arquivos por modelo (espelha estrutura das métricas automáticas)
-      for modelo, metricas in relatorio.get("metricas_por_modelo", {}).items():
-          nome_modelo = str(modelo).replace("/", "_")
-          arq_modelo = os.path.join(OUTPUT_DIR, f"accr_{nome_modelo}_{sufixo}.json")
-          tmp_m = Path(arq_modelo).with_suffix(".json.tmp")
-          tmp_m.write_text(
-              json.dumps(metricas, ensure_ascii=False, indent=2),
-              encoding="utf-8",
-          )
-          tmp_m.replace(arq_modelo)
-          print(f"   💾 Salvo: accr_{nome_modelo}_{sufixo}.json")
-
-      # Remove checkpoint após relatório final gerado com sucesso
-      if os.path.exists(nome_checkpoint):
-          os.remove(nome_checkpoint)
-          print(f"   🗑 Checkpoint removido: {nome_checkpoint}")
-
+  # Remove checkpoint após relatório final gerado com sucesso
+  if os.path.exists(nome_checkpoint):
+      os.remove(nome_checkpoint)
+      print(f"   🗑 Checkpoint removido: {nome_checkpoint}")
 
   print("\n✨ Avaliação concluída!")
 
+  # ─────────────────────────────────────────────────────────────────
+# Entrada via linha de comando
+# ─────────────────────────────────────────────────────────────────
+
 if __name__ == "__main__":
-  _BASE = Path(__file__).parent
+    _BASE = Path(__file__).parent
 
-  _parser = argparse.ArgumentParser(
-      description="Avaliação ACCR — LLM como avaliador de legendas de vídeo."
-  )
-  _parser.add_argument(
-      "--predictions", "-p", type=str,
-      default=str(_BASE / "../../output/predictions/predictions_gpt.json"),
-      help="predictions.json do modelo principal (ex: LLaMA)",
-  )
-  _parser.add_argument(
-      "--predictions2", "-p2", type=str, default=None,
-      help="predictions.json do segundo modelo (ex: GPT-4.1)",
-  )
-  _parser.add_argument(
-      "--gt", "-g", type=str, nargs="+",
-      default=[
-          str(_BASE / "../../data/ground_truth/anet_entities_test_1.json"),
-          str(_BASE / "../../data/ground_truth/anet_entities_test_2.json"),
-      ],
-      help="Arquivo(s) de ground truth (pode ser múltiplos)",
-  )
-  _parser.add_argument(
-      "--skimcap", "-s", type=str, default=None,
-      help="JSON da baseline SkimCap (opcional)",
-  )
-  _parser.add_argument(
-      "--provider", "-m", type=str, default=None,
-      choices=["github_gpt41", "github_llama"],
-      help=f"Modelo avaliador (padrão: {config.EVALUATOR_PROVIDER})",
-  )
-  _parser.add_argument(
-      "--modelo-nome", type=str, default="Modelo1",
-      help="Rótulo do modelo principal no relatório (padrão: Modelo1)",
-  )
-  _parser.add_argument(
-      "--modelo2-nome", type=str, default="Modelo2",
-      help="Rótulo do segundo modelo no relatório (padrão: Modelo2)",
-  )
-  _parser.add_argument(
-      "--output-dir", "-o", type=str,
-      default=str(_BASE / "../../output/metrics/accr"),
-      help="Pasta de saída para relatórios ACCR",
-  )
-  _args = _parser.parse_args()
+    _parser = argparse.ArgumentParser(
+        description="Avaliação ACCR — LLM como avaliador de legendas de vídeo."
+    )
+    _parser.add_argument(
+        "--predictions", "-p", type=str,
+        default=str(_BASE / "../../output/predictions/predictions_gpt.json"),
+        help="predictions.json do modelo principal",
+    )
+    _parser.add_argument(
+        "--predictions2", "-p2", type=str, default=None,
+        help="predictions.json do segundo modelo (opcional)",
+    )
+    _parser.add_argument(
+        "--gt", "-g", type=str, nargs="+",
+        default=[
+            str(_BASE / "../../data/ground_truth/anet_entities_test_1.json"),
+            str(_BASE / "../../data/ground_truth/anet_entities_test_2.json"),
+        ],
+        help="Arquivo(s) de ground truth (multi-referência)",
+    )
+    _parser.add_argument(
+        "--skimcap", "-s", type=str, default=None,
+        help="JSON da baseline SkimCap (opcional)",
+    )
+    _parser.add_argument(
+        "--provider", "-m", type=str, default=None,
+        choices=["github_gpt41", "github_llama"],
+        help="Modelo avaliador",
+    )
+    _parser.add_argument(
+        "--modelo-nome", dest="modelo_nome", type=str, default="Modelo1",
+        help="Rótulo do modelo principal",
+    )
+    _parser.add_argument(
+        "--modelo2-nome", dest="modelo2_nome", type=str, default="Modelo2",
+        help="Rótulo do segundo modelo",
+    )
+    _parser.add_argument(
+        "--output-dir", "-o", type=str,
+        default=str(_BASE / "../../output/metrics/accr"),
+        help="Pasta de saída",
+    )
+    _args = _parser.parse_args()
 
-  # Injeta provider no config se fornecido via CLI
-  if _args.provider:
-      config.EVALUATOR_PROVIDER = _args.provider
+    # Injeta provider no config se fornecido via CLI
+    if _args.provider:
+        config.EVALUATOR_PROVIDER = _args.provider
 
-  main(_args)
+    main(_args)
