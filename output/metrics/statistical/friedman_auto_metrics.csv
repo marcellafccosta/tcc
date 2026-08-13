@@ -1,0 +1,6 @@
+﻿family,variable,n_blocks,chi_square,p_value,kendalls_w,expected_n_blocks,alpha,significant,direction
+automatic_metrics,Bleu_4,10,4.647058823529415,0.09792734902032116,0.23235294117647073,10,0.05,no,higher_better
+automatic_metrics,ROUGE_L,10,9.800000000000011,0.007446583070924297,0.49000000000000055,10,0.05,yes,higher_better
+automatic_metrics,CIDEr,10,3.8000000000000114,0.14956861922263423,0.19000000000000056,10,0.05,no,higher_better
+automatic_metrics,METEOR,10,7.400000000000006,0.02472352647033933,0.3700000000000003,10,0.05,yes,higher_better
+automatic_metrics,R@4,10,3.1304347826087158,0.2090425641976586,0.1565217391304358,10,0.05,no,lower_better

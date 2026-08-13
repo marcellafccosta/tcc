@@ -1,0 +1,121 @@
+﻿video_index,video_id,video_key,model,dimension,n,score_human,sd_human,llm_video_id,score_llm
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,GPT-4.1,accuracy,36,75.6944,24.265,v_eS1r2Qi0qUM,90.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,GPT-4.1,completeness,36,52.0833,24.9106,v_eS1r2Qi0qUM,70.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,GPT-4.1,conciseness,36,61.8056,28.3386,v_eS1r2Qi0qUM,98.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,GPT-4.1,relevance,36,73.6111,22.3163,v_eS1r2Qi0qUM,100.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,Llama 4,accuracy,36,79.8611,23.0058,v_eS1r2Qi0qUM,90.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,Llama 4,completeness,36,75.6944,25.6947,v_eS1r2Qi0qUM,75.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,Llama 4,conciseness,36,86.1111,20.2171,v_eS1r2Qi0qUM,95.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,Llama 4,relevance,36,85.4167,19.2493,v_eS1r2Qi0qUM,90.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,SkimCap,accuracy,36,19.4444,26.1255,v_eS1r2Qi0qUM,30.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,SkimCap,completeness,36,22.2222,27.2408,v_eS1r2Qi0qUM,25.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,SkimCap,conciseness,36,38.8889,29.5468,v_eS1r2Qi0qUM,70.0
+1,eS1r2Qi0qUM,eS1r2Qi0qUM,SkimCap,relevance,36,27.7778,27.2408,v_eS1r2Qi0qUM,35.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,GPT-4.1,accuracy,36,81.25,22.6582,v_UXi0Cy16-0Y,80.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,GPT-4.1,completeness,36,85.4167,18.2981,v_UXi0Cy16-0Y,70.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,GPT-4.1,conciseness,36,75.6944,27.049,v_UXi0Cy16-0Y,90.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,GPT-4.1,relevance,36,79.8611,23.7693,v_UXi0Cy16-0Y,95.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,Llama 4,accuracy,36,13.1944,20.2538,v_UXi0Cy16-0Y,30.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,Llama 4,completeness,36,25.6944,27.049,v_UXi0Cy16-0Y,25.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,Llama 4,conciseness,36,23.6111,22.3163,v_UXi0Cy16-0Y,40.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,Llama 4,relevance,36,19.4444,23.2311,v_UXi0Cy16-0Y,30.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,SkimCap,accuracy,36,11.8056,15.2199,v_UXi0Cy16-0Y,15.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,SkimCap,completeness,36,26.3889,27.9952,v_UXi0Cy16-0Y,10.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,SkimCap,conciseness,36,18.0556,19.4671,v_UXi0Cy16-0Y,30.0
+2,UXi0Cy16-0Y,UXi0Cy16-0Y,SkimCap,relevance,36,16.6667,23.1455,v_UXi0Cy16-0Y,20.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,GPT-4.1,accuracy,36,79.1667,22.7565,v_VtIMPJjcdn4,75.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,GPT-4.1,completeness,36,78.4722,20.8333,v_VtIMPJjcdn4,70.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,GPT-4.1,conciseness,36,79.8611,23.7693,v_VtIMPJjcdn4,65.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,GPT-4.1,relevance,36,76.3889,24.6,v_VtIMPJjcdn4,70.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,Llama 4,accuracy,36,76.3889,25.3155,v_VtIMPJjcdn4,85.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,Llama 4,completeness,36,72.2222,27.8887,v_VtIMPJjcdn4,75.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,Llama 4,conciseness,36,70.1389,29.1667,v_VtIMPJjcdn4,80.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,Llama 4,relevance,36,75.6944,28.9619,v_VtIMPJjcdn4,90.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,SkimCap,accuracy,36,18.75,28.8933,v_VtIMPJjcdn4,10.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,SkimCap,completeness,36,11.8056,20.2538,v_VtIMPJjcdn4,10.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,SkimCap,conciseness,36,31.9444,31.4024,v_VtIMPJjcdn4,20.0
+3,VtIMPJjcdn4,VtIMPJjcdn4,SkimCap,relevance,36,11.1111,18.3658,v_VtIMPJjcdn4,10.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,GPT-4.1,accuracy,36,59.0278,28.1278,v_rMZtiiLAqoY,60.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,GPT-4.1,completeness,36,40.9722,28.7556,v_rMZtiiLAqoY,50.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,GPT-4.1,conciseness,36,54.1667,28.3473,v_rMZtiiLAqoY,85.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,GPT-4.1,relevance,36,50.6944,30.756,v_rMZtiiLAqoY,60.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,Llama 4,accuracy,36,30.5556,27.4585,v_rMZtiiLAqoY,10.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,Llama 4,completeness,36,15.9722,18.08,v_rMZtiiLAqoY,5.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,Llama 4,conciseness,36,28.4722,25.462,v_rMZtiiLAqoY,70.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,Llama 4,relevance,36,20.8333,20.2661,v_rMZtiiLAqoY,10.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,SkimCap,accuracy,36,6.25,13.8551,v_rMZtiiLAqoY,5.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,SkimCap,completeness,36,6.9444,14.1562,v_rMZtiiLAqoY,3.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,SkimCap,conciseness,36,14.5833,22.6582,v_rMZtiiLAqoY,10.0
+4,rMZtiiLAqoY,rMZtiiLAqoY,SkimCap,relevance,36,2.7778,9.9602,v_rMZtiiLAqoY,5.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,GPT-4.1,accuracy,36,60.4167,26.9755,v_bvnXdr-Hre4,65.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,GPT-4.1,completeness,36,55.5556,23.9874,v_bvnXdr-Hre4,55.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,GPT-4.1,conciseness,36,60.4167,26.3052,v_bvnXdr-Hre4,75.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,GPT-4.1,relevance,36,61.1111,27.6744,v_bvnXdr-Hre4,60.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,Llama 4,accuracy,36,34.0278,27.4856,v_bvnXdr-Hre4,40.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,Llama 4,completeness,36,43.75,28.2685,v_bvnXdr-Hre4,55.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,Llama 4,conciseness,36,54.1667,26.3899,v_bvnXdr-Hre4,85.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,Llama 4,relevance,36,50.6944,25.6947,v_bvnXdr-Hre4,60.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,SkimCap,accuracy,36,23.6111,26.689,v_bvnXdr-Hre4,30.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,SkimCap,completeness,36,13.8889,18.3658,v_bvnXdr-Hre4,25.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,SkimCap,conciseness,36,27.0833,28.2685,v_bvnXdr-Hre4,60.0
+5,bvnXdr-Hre4,bvnXdr-Hre4,SkimCap,relevance,36,15.9722,19.042,v_bvnXdr-Hre4,35.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,GPT-4.1,accuracy,36,78.4722,19.042,v_j4Ru2L4u0Qk,95.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,GPT-4.1,completeness,36,74.3056,22.7456,v_j4Ru2L4u0Qk,88.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,GPT-4.1,conciseness,36,72.9167,22.6582,v_j4Ru2L4u0Qk,96.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,GPT-4.1,relevance,36,74.3056,25.6947,v_j4Ru2L4u0Qk,98.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,Llama 4,accuracy,36,65.2778,26.2391,v_j4Ru2L4u0Qk,85.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,Llama 4,completeness,36,54.1667,25.0,v_j4Ru2L4u0Qk,75.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,Llama 4,conciseness,36,56.25,29.5048,v_j4Ru2L4u0Qk,90.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,Llama 4,relevance,36,61.8056,25.6947,v_j4Ru2L4u0Qk,100.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,SkimCap,accuracy,36,21.5278,27.4856,v_j4Ru2L4u0Qk,10.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,SkimCap,completeness,36,20.8333,27.7102,v_j4Ru2L4u0Qk,15.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,SkimCap,conciseness,36,22.2222,29.7476,v_j4Ru2L4u0Qk,70.0
+6,j4Ru2L4u0Qk,j4Ru2L4u0Qk,SkimCap,relevance,36,21.5278,27.4856,v_j4Ru2L4u0Qk,20.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,GPT-4.1,accuracy,36,81.25,15.089,v_7ZbH4vHTmVs,92.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,GPT-4.1,completeness,36,79.1667,17.4233,v_7ZbH4vHTmVs,88.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,GPT-4.1,conciseness,36,66.6667,19.8206,v_7ZbH4vHTmVs,95.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,GPT-4.1,relevance,36,70.8333,26.3899,v_7ZbH4vHTmVs,97.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,Llama 4,accuracy,36,50.0,28.6606,v_7ZbH4vHTmVs,70.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,Llama 4,completeness,36,47.2222,28.5218,v_7ZbH4vHTmVs,65.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,Llama 4,conciseness,36,43.0556,25.7814,v_7ZbH4vHTmVs,75.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,Llama 4,relevance,36,47.2222,27.8887,v_7ZbH4vHTmVs,70.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,SkimCap,accuracy,36,15.2778,20.9402,v_7ZbH4vHTmVs,55.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,SkimCap,completeness,36,14.5833,19.2493,v_7ZbH4vHTmVs,50.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,SkimCap,conciseness,36,25.0,29.8807,v_7ZbH4vHTmVs,75.0
+7,7ZbH4vHTmVs,7ZbH4vHTmVs,SkimCap,relevance,36,22.2222,25.1976,v_7ZbH4vHTmVs,60.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,GPT-4.1,accuracy,36,84.0278,15.983,v_rmoa-Ffel2k,30.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,GPT-4.1,completeness,36,75.6944,23.5176,v_rmoa-Ffel2k,25.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,GPT-4.1,conciseness,36,77.7778,22.9734,v_rmoa-Ffel2k,80.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,GPT-4.1,relevance,36,73.6111,26.689,v_rmoa-Ffel2k,35.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,Llama 4,accuracy,36,14.5833,21.0229,v_rmoa-Ffel2k,10.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,Llama 4,completeness,36,21.5278,27.4856,v_rmoa-Ffel2k,10.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,Llama 4,conciseness,36,28.4722,28.1278,v_rmoa-Ffel2k,40.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,Llama 4,relevance,36,17.3611,26.6052,v_rmoa-Ffel2k,10.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,SkimCap,accuracy,36,15.9722,21.6735,v_rmoa-Ffel2k,30.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,SkimCap,completeness,36,19.4444,23.9874,v_rmoa-Ffel2k,25.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,SkimCap,conciseness,36,25.6944,26.3805,v_rmoa-Ffel2k,60.0
+8,rmoa-Ffel2k,rmoa-Ffel2k,SkimCap,relevance,36,15.9722,19.042,v_rmoa-Ffel2k,35.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,GPT-4.1,accuracy,36,89.5833,15.089,v_bXdq2zI1Ms0,55.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,GPT-4.1,completeness,36,84.7222,18.203,v_bXdq2zI1Ms0,60.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,GPT-4.1,conciseness,36,85.4167,18.2981,v_bXdq2zI1Ms0,75.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,GPT-4.1,relevance,36,87.5,19.3649,v_bXdq2zI1Ms0,60.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,Llama 4,accuracy,36,83.3333,16.9031,v_bXdq2zI1Ms0,55.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,Llama 4,completeness,36,75.0,20.702,v_bXdq2zI1Ms0,60.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,Llama 4,conciseness,36,77.7778,19.6194,v_bXdq2zI1Ms0,75.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,Llama 4,relevance,36,81.25,19.2493,v_bXdq2zI1Ms0,60.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,SkimCap,accuracy,36,8.3333,22.3607,v_bXdq2zI1Ms0,15.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,SkimCap,completeness,36,11.8056,23.5176,v_bXdq2zI1Ms0,20.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,SkimCap,conciseness,36,18.0556,29.6474,v_bXdq2zI1Ms0,10.0
+9,bXdq2zI1Ms0,bXdq2zI1Ms0,SkimCap,relevance,36,11.1111,23.4859,v_bXdq2zI1Ms0,15.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,GPT-4.1,accuracy,36,84.0278,15.983,v_-UwqKYkkKlU,90.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,GPT-4.1,completeness,36,83.3333,19.8206,v_-UwqKYkkKlU,75.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,GPT-4.1,conciseness,36,81.9444,19.4671,v_-UwqKYkkKlU,95.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,GPT-4.1,relevance,36,79.1667,22.7565,v_-UwqKYkkKlU,95.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,Llama 4,accuracy,36,81.25,19.2493,v_-UwqKYkkKlU,92.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,Llama 4,completeness,36,81.25,21.8559,v_-UwqKYkkKlU,85.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,Llama 4,conciseness,36,81.9444,17.5368,v_-UwqKYkkKlU,95.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,Llama 4,relevance,36,84.0278,19.9578,v_-UwqKYkkKlU,93.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,SkimCap,accuracy,36,34.7222,26.2391,v_-UwqKYkkKlU,80.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,SkimCap,completeness,36,28.4722,23.2631,v_-UwqKYkkKlU,65.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,SkimCap,conciseness,36,34.7222,24.8408,v_-UwqKYkkKlU,85.0
+10,-UwqKYkkKlU,-UwqKYkkKlU,SkimCap,relevance,36,31.25,24.1831,v_-UwqKYkkKlU,75.0

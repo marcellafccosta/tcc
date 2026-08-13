@@ -1,0 +1,76 @@
+{
+  "modelo": "GPT-4.1",
+  "escala": "0-100",
+  "metricas_por_video": {
+    "v_-UwqKYkkKlU": {
+      "Bleu_4": 0.0,
+      "ROUGE_L": 24.3236,
+      "CIDEr": 2.1142,
+      "METEOR": 17.3077,
+      "R@4": 0.0
+    },
+    "v_7ZbH4vHTmVs": {
+      "Bleu_4": 6.7051,
+      "ROUGE_L": 28.0644,
+      "CIDEr": 0.0,
+      "METEOR": 28.7463,
+      "R@4": 0.0
+    },
+    "v_UXi0Cy16-0Y": {
+      "Bleu_4": 0.0012,
+      "ROUGE_L": 30.3676,
+      "CIDEr": 18.6776,
+      "METEOR": 38.1376,
+      "R@4": 0.0
+    },
+    "v_VtIMPJjcdn4": {
+      "Bleu_4": 7.4161,
+      "ROUGE_L": 34.2422,
+      "CIDEr": 0.0007,
+      "METEOR": 44.9075,
+      "R@4": 0.0
+    },
+    "v_bXdq2zI1Ms0": {
+      "Bleu_4": 0.0,
+      "ROUGE_L": 12.344,
+      "CIDEr": 0.0045,
+      "METEOR": 18.0921,
+      "R@4": 0.0
+    },
+    "v_bvnXdr-Hre4": {
+      "Bleu_4": 0.0009,
+      "ROUGE_L": 23.6893,
+      "CIDEr": 2.341,
+      "METEOR": 21.2014,
+      "R@4": 0.0
+    },
+    "v_eS1r2Qi0qUM": {
+      "Bleu_4": 0.001,
+      "ROUGE_L": 18.2012,
+      "CIDEr": 28.1997,
+      "METEOR": 20.4918,
+      "R@4": 0.0
+    },
+    "v_j4Ru2L4u0Qk": {
+      "Bleu_4": 0.0,
+      "ROUGE_L": 27.3815,
+      "CIDEr": 22.4679,
+      "METEOR": 22.8013,
+      "R@4": 0.0
+    },
+    "v_rMZtiiLAqoY": {
+      "Bleu_4": 0.001,
+      "ROUGE_L": 25.8708,
+      "CIDEr": 15.104,
+      "METEOR": 21.2014,
+      "R@4": 0.0
+    },
+    "v_rmoa-Ffel2k": {
+      "Bleu_4": 0.0,
+      "ROUGE_L": 20.8062,
+      "CIDEr": 8.9448,
+      "METEOR": 17.7515,
+      "R@4": 2.0833
+    }
+  }
+}

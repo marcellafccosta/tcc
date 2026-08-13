@@ -1,0 +1,38 @@
+{
+  "accuracy": {
+    "type": "ICC(2,k)",
+    "targets": 30,
+    "raters": 36,
+    "icc": 0.984211,
+    "MS_target": 52.841667,
+    "MS_rater": 3.545476,
+    "MS_error": 0.742356
+  },
+  "completeness": {
+    "type": "ICC(2,k)",
+    "targets": 30,
+    "raters": 36,
+    "icc": 0.980302,
+    "MS_target": 44.775351,
+    "MS_rater": 3.272275,
+    "MS_error": 0.80123
+  },
+  "conciseness": {
+    "type": "ICC(2,k)",
+    "targets": 30,
+    "raters": 36,
+    "icc": 0.970113,
+    "MS_target": 34.498755,
+    "MS_rater": 3.737857,
+    "MS_error": 0.940594
+  },
+  "relevance": {
+    "type": "ICC(2,k)",
+    "targets": 30,
+    "raters": 36,
+    "icc": 0.981094,
+    "MS_target": 48.009068,
+    "MS_rater": 2.851005,
+    "MS_error": 0.841974
+  }
+}

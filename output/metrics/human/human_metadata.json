@@ -1,0 +1,21 @@
+{
+  "participants": 36,
+  "individual_ratings": 4320,
+  "consent_counts": {
+    "Sim, concordo em participar": 4320
+  },
+  "english_proficiency_counts": {
+    "Avançado": 16,
+    "Fluente/Nativo": 8,
+    "Intermediário": 7,
+    "Básico": 5
+  },
+  "normalization": "POMP = ((Likert - 1) / 4) * 100",
+  "likert_mapping": {
+    "1": 0,
+    "2": 25,
+    "3": 50,
+    "4": 75,
+    "5": 100
+  }
+}

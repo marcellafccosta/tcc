@@ -1,0 +1,76 @@
+{
+  "modelo": "Llama 4",
+  "escala": "0-100",
+  "metricas_por_video": {
+    "v_-UwqKYkkKlU": {
+      "Bleu_4": 0.0011,
+      "ROUGE_L": 28.4751,
+      "CIDEr": 15.6977,
+      "METEOR": 33.9752,
+      "R@4": 0.0
+    },
+    "v_7ZbH4vHTmVs": {
+      "Bleu_4": 0.001,
+      "ROUGE_L": 23.978,
+      "CIDEr": 0.057,
+      "METEOR": 26.1539,
+      "R@4": 0.0
+    },
+    "v_UXi0Cy16-0Y": {
+      "Bleu_4": 0.001,
+      "ROUGE_L": 25.0019,
+      "CIDEr": 7.6557,
+      "METEOR": 28.261,
+      "R@4": 7.8431
+    },
+    "v_VtIMPJjcdn4": {
+      "Bleu_4": 9.6964,
+      "ROUGE_L": 36.9869,
+      "CIDEr": 4.4915,
+      "METEOR": 40.3093,
+      "R@4": 0.0
+    },
+    "v_bXdq2zI1Ms0": {
+      "Bleu_4": 0.0,
+      "ROUGE_L": 13.1749,
+      "CIDEr": 1.1471,
+      "METEOR": 8.7108,
+      "R@4": 2.9412
+    },
+    "v_bvnXdr-Hre4": {
+      "Bleu_4": 0.0015,
+      "ROUGE_L": 19.8605,
+      "CIDEr": 39.7488,
+      "METEOR": 31.7018,
+      "R@4": 0.0
+    },
+    "v_eS1r2Qi0qUM": {
+      "Bleu_4": 0.0,
+      "ROUGE_L": 17.256,
+      "CIDEr": 33.7102,
+      "METEOR": 22.094,
+      "R@4": 0.0
+    },
+    "v_j4Ru2L4u0Qk": {
+      "Bleu_4": 19.6243,
+      "ROUGE_L": 38.9362,
+      "CIDEr": 100.8148,
+      "METEOR": 38.7715,
+      "R@4": 0.0
+    },
+    "v_rMZtiiLAqoY": {
+      "Bleu_4": 0.0,
+      "ROUGE_L": 15.9895,
+      "CIDEr": 0.0917,
+      "METEOR": 9.0416,
+      "R@4": 3.4483
+    },
+    "v_rmoa-Ffel2k": {
+      "Bleu_4": 0.0011,
+      "ROUGE_L": 19.4336,
+      "CIDEr": 14.4487,
+      "METEOR": 19.5353,
+      "R@4": 0.0
+    }
+  }
+}

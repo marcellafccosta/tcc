@@ -1,0 +1,7 @@
+﻿family,variable,model_a,model_b,n_pairs,statistic,p_raw,median_a,median_b,median_difference_a_minus_b,direction,p_holm,significant_holm
+automatic_metrics,ROUGE_L,GPT-4.1,Llama 4,10,22.0,0.625,25.0972,21.919249999999998,1.158900000000001,higher_better,0.625,no
+automatic_metrics,ROUGE_L,GPT-4.1,SkimCap,10,1.0,0.00390625,25.0972,33.16015,-10.03935,higher_better,0.01171875,yes
+automatic_metrics,ROUGE_L,Llama 4,SkimCap,10,4.0,0.013671875,21.919249999999998,33.16015,-12.537150000000002,higher_better,0.02734375,yes
+automatic_metrics,METEOR,GPT-4.1,Llama 4,10,26.0,0.921875,21.2014,27.20745,0.49510000000000076,higher_better,0.921875,no
+automatic_metrics,METEOR,GPT-4.1,SkimCap,10,8.0,0.048828125,21.2014,35.5835,-11.722900000000001,higher_better,0.146484375,no
+automatic_metrics,METEOR,Llama 4,SkimCap,10,9.0,0.064453125,27.20745,35.5835,-7.775449999999998,higher_better,0.146484375,no

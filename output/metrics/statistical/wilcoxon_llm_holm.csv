@@ -1,0 +1,13 @@
+﻿family,variable,model_a,model_b,n_pairs,statistic,p_raw,median_a,median_b,median_difference_a_minus_b,direction,p_holm,significant_holm
+llm_accr,accuracy,GPT-4.1,Llama 4,10,3.5,0.04181054297657881,77.5,62.5,15.0,higher_better,0.0546875,no
+llm_accr,accuracy,GPT-4.1,SkimCap,10,0.0,0.007632441648205508,77.5,22.5,47.5,higher_better,0.022897324944616524,yes
+llm_accr,accuracy,Llama 4,SkimCap,10,6.0,0.02734375,62.5,22.5,15.0,higher_better,0.0546875,no
+llm_accr,completeness,GPT-4.1,Llama 4,10,6.0,0.09209091592891185,70.0,62.5,6.5,higher_better,0.09209091592891185,no
+llm_accr,completeness,GPT-4.1,SkimCap,10,0.0,0.007632441648205508,70.0,22.5,42.5,higher_better,0.022897324944616524,yes
+llm_accr,completeness,Llama 4,SkimCap,10,3.0,0.009765625,62.5,22.5,25.0,higher_better,0.022897324944616524,yes
+llm_accr,conciseness,GPT-4.1,Llama 4,10,7.5,0.1409940812035564,87.5,77.5,4.5,higher_better,0.1409940812035564,no
+llm_accr,conciseness,GPT-4.1,SkimCap,10,0.0,0.001953125,87.5,60.0,27.0,higher_better,0.005859375,yes
+llm_accr,conciseness,Llama 4,SkimCap,10,3.5,0.02389175053807397,77.5,60.0,22.5,higher_better,0.04778350107614794,yes
+llm_accr,relevance,GPT-4.1,Llama 4,10,5.5,0.07968802567429142,82.5,65.0,6.0,higher_better,0.07968802567429142,no
+llm_accr,relevance,GPT-4.1,SkimCap,10,0.0,0.007685794055213263,82.5,27.5,50.0,higher_better,0.023057382165639788,yes
+llm_accr,relevance,Llama 4,SkimCap,10,5.5,0.02734375,65.0,27.5,21.5,higher_better,0.0546875,no

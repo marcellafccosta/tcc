@@ -1,0 +1,236 @@
+{
+  "alpha": 0.05,
+  "expected_design": {
+    "participants_final": 36,
+    "videos": 10,
+    "models": 3,
+    "dimensions": 4,
+    "kendall_n_per_dimension_or_metric": 30,
+    "friedman_blocks": 10
+  },
+  "metric_direction": {
+    "Bleu_4": "higher_better",
+    "ROUGE_L": "higher_better",
+    "CIDEr": "higher_better",
+    "METEOR": "higher_better",
+    "R@4": "lower_better"
+  },
+  "notes": [
+    "R@4 is lower-is-better and is not inverted before Kendall.",
+    "A negative Kendall tau for R@4 can therefore indicate directional agreement with higher-is-better human/ACCR scores.",
+    "Wilcoxon post-hoc tests are generated only when the corresponding Friedman test has p < alpha.",
+    "Holm correction is applied within each family of three pairwise model comparisons for each variable."
+  ],
+  "kendall_human_vs_llm": [
+    {
+      "dimension": "accuracy",
+      "n": 30,
+      "tau_b": 0.5382798838972191,
+      "p_b": 4.934594055414624e-05,
+      "tau_c": 0.5380952380952381,
+      "p_c": 4.934594055414624e-05,
+      "expected_n": 30
+    },
+    {
+      "dimension": "completeness",
+      "n": 30,
+      "tau_b": 0.6138265600166085,
+      "p_b": 3.6174786103975725e-06,
+      "tau_c": 0.6174358974358974,
+      "p_c": 3.6174786103975725e-06,
+      "expected_n": 30
+    },
+    {
+      "dimension": "conciseness",
+      "n": 30,
+      "tau_b": 0.5467278195862456,
+      "p_b": 3.898418743208603e-05,
+      "tau_c": 0.548034188034188,
+      "p_c": 3.898418743208603e-05,
+      "expected_n": 30
+    },
+    {
+      "dimension": "relevance",
+      "n": 30,
+      "tau_b": 0.5450460481344631,
+      "p_b": 4.129391648532415e-05,
+      "tau_c": 0.5428571428571428,
+      "p_c": 4.129391648532415e-05,
+      "expected_n": 30
+    }
+  ],
+  "friedman_human": [
+    {
+      "family": "human",
+      "variable": "accuracy",
+      "n_blocks": 10,
+      "chi_square": 16.200000000000017,
+      "p_value": 0.000303539138078864,
+      "kendalls_w": 0.8100000000000008,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    },
+    {
+      "family": "human",
+      "variable": "completeness",
+      "n_blocks": 10,
+      "chi_square": 16.200000000000017,
+      "p_value": 0.000303539138078864,
+      "kendalls_w": 0.8100000000000008,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    },
+    {
+      "family": "human",
+      "variable": "conciseness",
+      "n_blocks": 10,
+      "chi_square": 17.897435897435916,
+      "p_value": 0.00012990359640529617,
+      "kendalls_w": 0.8948717948717958,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    },
+    {
+      "family": "human",
+      "variable": "relevance",
+      "n_blocks": 10,
+      "chi_square": 16.80000000000001,
+      "p_value": 0.00022486732417884692,
+      "kendalls_w": 0.8400000000000005,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    },
+    {
+      "family": "human",
+      "variable": "mean_accr",
+      "n_blocks": 10,
+      "chi_square": 17.897435897435916,
+      "p_value": 0.00012990359640529617,
+      "kendalls_w": 0.8948717948717958,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    }
+  ],
+  "friedman_llm": [
+    {
+      "family": "llm_accr",
+      "variable": "accuracy",
+      "n_blocks": 10,
+      "chi_square": 12.810810810810803,
+      "p_value": 0.0016526001128590129,
+      "kendalls_w": 0.6405405405405402,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    },
+    {
+      "family": "llm_accr",
+      "variable": "completeness",
+      "n_blocks": 10,
+      "chi_square": 12.05405405405406,
+      "p_value": 0.0024126560883086243,
+      "kendalls_w": 0.602702702702703,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    },
+    {
+      "family": "llm_accr",
+      "variable": "conciseness",
+      "n_blocks": 10,
+      "chi_square": 13.351351351351344,
+      "p_value": 0.0012612201221243592,
+      "kendalls_w": 0.6675675675675672,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    },
+    {
+      "family": "llm_accr",
+      "variable": "relevance",
+      "n_blocks": 10,
+      "chi_square": 12.810810810810803,
+      "p_value": 0.0016526001128590129,
+      "kendalls_w": 0.6405405405405402,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    }
+  ],
+  "friedman_auto_metrics": [
+    {
+      "family": "automatic_metrics",
+      "variable": "Bleu_4",
+      "n_blocks": 10,
+      "chi_square": 4.647058823529415,
+      "p_value": 0.09792734902032116,
+      "kendalls_w": 0.23235294117647073,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "no",
+      "direction": "higher_better"
+    },
+    {
+      "family": "automatic_metrics",
+      "variable": "ROUGE_L",
+      "n_blocks": 10,
+      "chi_square": 9.800000000000011,
+      "p_value": 0.007446583070924297,
+      "kendalls_w": 0.49000000000000055,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    },
+    {
+      "family": "automatic_metrics",
+      "variable": "CIDEr",
+      "n_blocks": 10,
+      "chi_square": 3.8000000000000114,
+      "p_value": 0.14956861922263423,
+      "kendalls_w": 0.19000000000000056,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "no",
+      "direction": "higher_better"
+    },
+    {
+      "family": "automatic_metrics",
+      "variable": "METEOR",
+      "n_blocks": 10,
+      "chi_square": 7.400000000000006,
+      "p_value": 0.02472352647033933,
+      "kendalls_w": 0.3700000000000003,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "yes",
+      "direction": "higher_better"
+    },
+    {
+      "family": "automatic_metrics",
+      "variable": "R@4",
+      "n_blocks": 10,
+      "chi_square": 3.1304347826087158,
+      "p_value": 0.2090425641976586,
+      "kendalls_w": 0.1565217391304358,
+      "expected_n_blocks": 10,
+      "alpha": 0.05,
+      "significant": "no",
+      "direction": "lower_better"
+    }
+  ]
+}

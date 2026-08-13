@@ -1,0 +1,5 @@
+﻿family,variable,n_blocks,chi_square,p_value,kendalls_w,expected_n_blocks,alpha,significant,direction
+llm_accr,accuracy,10,12.810810810810803,0.0016526001128590129,0.6405405405405402,10,0.05,yes,higher_better
+llm_accr,completeness,10,12.05405405405406,0.0024126560883086243,0.602702702702703,10,0.05,yes,higher_better
+llm_accr,conciseness,10,13.351351351351344,0.0012612201221243592,0.6675675675675672,10,0.05,yes,higher_better
+llm_accr,relevance,10,12.810810810810803,0.0016526001128590129,0.6405405405405402,10,0.05,yes,higher_better
